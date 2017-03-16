@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE gsa-template SYSTEM "dynamosystemresource:/atg/dtds/gsa/gsa_1.0.dtd">
+
+<gsa-template>
+
+	<header>
+		<name>BricsMorter</name>
+		<author>Anupam Gogoi</author>
+	</header>
+
+	<item-descriptor name="BricsMorter">
+		<table name="CLOTHINGSTORE_STORE" id-column-name="ID" type="primary">
+			<property name="storeName" column-name="STORE_NAME"
+				data-type="String" />
+			<property name="storeNumber" column-name="STORE_NUMBER"
+				data-type="String" />
+			<property name="storeDescription" column-name="STORE_DESCRIPTION"
+				data-type="String" />
+			<property name="storeManager" column-name="STORE_MANAGER"
+				data-type="String" />
+			<property name="storeSize" column-name="STORE_SIZE"
+				data-type="int" />
+
+			<!-- Relations/Complex -->
+			<property name="storeContactInformation" column-name="STORE_CONTACT"
+				item-type="contactInfo" repository="/atg/userprofiling/ProfileAdapterRepository" />
+			<property name="storeCategory" column-name="STORE_CATEGORY"
+				data-type="enumerated">
+				<option value="Mini Store" code="101" />
+				<option value="Mega Store" code="102" />
+				<option value="Hyper Store" code="103" />
+			</property>
+		</table>
+
+		<table name="CLOTHINGSTORE_IMAGES" id-column-name="STORE_ID" multi-column-name="STORE_ID"
+			type="multi">
+			<property name="storeImages" column-name="STORE_IMAGE"
+				component-data-type="String" data-type="list" />
+		</table>
+	</item-descriptor>
+</gsa-template>
+

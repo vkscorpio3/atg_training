@@ -1,0 +1,429 @@
+@charset "utf-8";
+/**
+ * @link            
+ * @lastmodified    $ Date: 02-07-2012 03:19 PM $
+ * @purpose         mainly including header, footer, home page, PDP, category.
+**/
+
+/******************************** 
+	header
+*********************************/
+#header .LogoBox{
+	float: left;
+	width: 220px;
+}
+
+#header .clothinglogo{
+	width: 220px;
+	height: 55px;
+	background: url(../images/common/logo_US.gif) no-repeat left top;
+	display: inline-block;
+}
+
+#header .electronicslogo{
+	width: 220px;
+	height: 55px;
+	background: url(../images/common/logo_CA.gif) no-repeat left top;
+	display: inline-block;
+}
+
+#header .logo{
+	width: 220px;
+	height: 55px;
+	background: url(../images/common/logo.gif) no-repeat left top;
+	display: inline-block;
+}
+
+#header .loginBox{
+	float: left;
+	text-align: right;
+	width: 720px;
+	margin: 10px 0 0 20px;
+}
+
+.loginBox p{
+	padding-bottom: 10px;
+}
+
+.loginBox p .cutline{
+	padding: 0 10px;
+}
+.loginBox a.recently{
+	color: #8aae06; 
+	text-decoration: underline;
+}
+.loginBox .sel-site{
+	background: #e0e0e0; 
+	padding: 3px 7px; 
+	margin-right: 15px;
+	text-transform:	capitalize
+}
+/******************************** 
+	banner
+*********************************/
+.bannerBox{
+	float: left;
+	width: 100%;
+}
+
+.bannerBox a,
+.bannerBox a img{
+	display: block;
+}
+
+.bannerBox a img{
+	width: 960px;
+}
+
+/******************************** 
+	category, sub_category, product list, product detail
+*********************************/
+.catgBox, .catgBox .row,
+.prodlist, .prodlist .box,
+.prodDetail{
+	float: left;
+	width: 100%;
+}
+
+/* category */
+.catgBox .catg,
+.catgBox .subCatg,
+.prodlist, 
+.prodlist .box{
+	float: left;
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.catg .img{
+	float: left;
+	width: 172px;
+	background-color: #F2F3F7; /* blue-grey */
+	padding: 4px;
+	margin-right: 15px;
+}
+
+.catg .img a{
+	display: block;
+}
+
+.catg .img a img{
+	width: 172px;
+	height: 167px;
+}
+
+.catg .info{
+	float: left;
+	width: 765px;
+	padding-top: 4px;
+}
+
+.catg .info p.name a,
+.catg .info p.name a:hover{
+	font-size: 12px;
+	text-transform: uppercase;
+}
+
+.catg .info p.name a:hover{
+	color: #528900; /* green */
+}
+
+/* product list */
+.prodlist .box,
+.catgBox .subCatg{
+	border-top: 1px dashed #e4e4e4; /* light grey */
+	padding: 10px 0;
+}
+
+.prodlist .box.first,
+.catgBox .subCatg.first{
+	border-top: 0;
+	padding-top: 0;
+}
+
+.prodlist .box .img,
+.catgBox .subCatg .img{
+	float: left;
+	width: 172px;
+	padding: 4px;
+	margin-right: 15px;
+	background-color: #F2F3F7; /* blue-grey */
+}
+
+.prodlist .box .img a img,
+.catgBox .subCatg .img a img{
+	width: 172px;
+}
+
+.prodlist .box .info,
+.catgBox .subCatg .info{
+	float: left;
+	width: 465px;
+	padding-top: 4px;
+}
+
+.prodlist .box .info p.name a,
+.catgBox .subCatg .info p.name a{
+	text-transform: capitalize;
+}
+
+.prodlist .box .price,
+.catgBox .subCatg .price{
+	float: right;
+	width: 300px;
+	padding-top: 4px;
+	text-align: right;
+}
+
+/* product detail */
+.prodDetail .img{
+	float: left;
+	width: 400px;
+	margin-right: 20px;
+}
+
+.prodDetail .img img{
+	width: 400px;
+	height: 389px;
+}
+
+.prodDetail .img2{
+	float: left;
+	width: 200px;
+	margin-right: 20px;
+}
+
+.prodDetail .img2 img{
+	width: 200px;
+	height: 200px;
+}
+
+.prodDetail .textInfo{
+	float: left;
+	width: 540px;
+}
+
+.prodDetail .info{
+	float: left;
+	width: 960px;
+	margin-top: 10px;
+	line-height: 1.7em;
+	font-size: 12px;
+}
+
+.prodDetail .info h2,
+.prodDetail .info p.price,
+.prodDetail .info p.qty,
+.prodDetail .info p.btnBox{
+	float: left;
+	margin-right: 10px;
+}
+
+.prodDetail .info h2,
+.prodDetail .info p.price,
+.prodDetail .info p.qty{
+	line-height: 26px;
+}
+
+.prodDetail .info p.qty .textInput{
+	width: 80px;
+}
+
+.prodDetail .info p .blod{
+	margin-right: 5px;
+}
+
+.prodDetail .availability{
+	float: left;
+	width: 960px;
+	font-size: 12px;
+	color: #528900; /* green */
+	font-weight: 700;
+	text-transform: uppercase;
+	margin-top: 30px;
+}
+
+.prodDetail .grey{
+	padding-right: 10px;
+}
+
+/******************************** 
+	my acctount, shiooing cart, checkout
+*********************************/
+.login .text{
+	float: left;
+	width: 100%;
+	margin-bottom: 20px;
+}
+
+.listBox,
+.listBox .item,
+.listBox .qty,
+.listBox .price,
+.subTotal,
+.total{
+	float: left;
+	width: 100%;
+}
+
+.listBox{
+	border-bottom: 1px dashed #e4e4e4; /* light grey */
+	padding: 15px 0;
+}
+
+.listBox ul.head{
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.listBox .item{
+	width: 200px;
+	margin-right: 15px;
+}
+
+.listBox .item p.name{
+	padding-bottom: 6px;
+}
+
+.listBox .qty{
+	width: 205px;
+	margin-left: 15px;
+}
+
+.listBox .qty .textInput{
+	width: 120px;
+}
+
+.listBox .price{
+	float: right;
+	width: 260px;
+	text-align: right;
+}
+
+.subTotal, .total{
+	float: right;
+	margin-top: 20px;
+	text-align: right;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.total{
+	font-size: 16px;
+}
+
+.shoppingCart .btnBox{
+	float: right;
+	text-align: right;
+	margin-top: 20px;
+}
+
+.checkout .box{
+	float: left;
+	width: 440px;
+	margin: 20px;
+}
+
+.checkout .box h4{
+	margin: 10px 0 20px;
+}
+
+.checkout .box .textInput{
+	width: 280px;
+}
+
+.checkout .btnBox{
+	float: right;
+	width: 920px;
+	padding: 20px 0;
+	margin: 30px 20px 0 0;
+	border-top: 1px solid #e4e4e4; /* light grey */
+	text-align: right;
+}
+
+.checkout .btnBox .btn{
+	margin-left: 7px;
+}
+
+.checkout .orderSummary,
+.checkout .shipping,
+.checkout .payment,
+.checkout .order,
+.checkout .paymentInfo{
+	float: left;
+	width: 920px;
+	padding: 0 20px;
+	margin-top: 20px;
+}
+
+.checkout .orderSummary .total{
+	margin-bottom: 30px;
+}
+
+.checkout .shipping h4,
+.checkout .payment h4{
+	float: left;
+	width: 160px;
+}
+
+.checkout .shipping .info,
+.checkout .payment .info{
+	float: left;
+	width: 760px;
+}
+
+.checkout .shipping .info p,
+.checkout .payment .info p{
+	padding-top: 6px;
+}
+
+.checkout .shipping .info p.name,
+.checkout .payment .info p.name{
+	padding-top: 0;
+}
+
+.checkout .order{
+	font-size: 12px;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+.checkout .order span{
+	padding-right: 5px;
+}
+
+.checkout .paymentInfo p{
+	padding-top: 8px;
+	display: inline-block;
+	width: 40%;
+}
+
+.checkout .paymentInfo p span{
+	padding-right: 5px;
+}
+
+/********************************
+featured product
+*********************************/
+#main .prodImg img{
+	width: 200px; 
+	height: 200px
+}
+
+/******************************** 
+	footer
+*********************************/
+#footer a{
+	text-transform: capitalize;
+}
+
+.aboutUs .bgLine{
+	background-color: #e5f4cd; /* light green */
+	height: 20px;
+	margin-bottom: 20px;
+}
+
+.aboutUs p{
+	padding: 0 20px;
+}

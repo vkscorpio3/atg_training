@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is a generated file -->
+
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="versioned_site_ddl" description="">
+<comment> @version $Id: //product/DAS/version/11.2/templates/DAS/sql/site_ddl.xml#3 $$Change: 1179550 $</comment>
+<comment>
+This file contains create table statements, which will configure
+your database for use MultiSite
+</comment>
+
+  
+	 <table description="" lock-mode="default" name="site_template" pessimistic="y">
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="name" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="y" name="description" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="item_mapping_id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <primary-key name="site_template1_p" non-clustered="n">
+      <index-column column="id" order="asc" seq="1"/>
+    </primary-key>
+  </table>
+  
+  
+	 <table name="site_configuration" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="workspace_id" nullable="n" description="the id of the workspace that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="branch_id" nullable="n" description="the id of the branch that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="is_head" nullable="n" description="is this version the head of branch">
+				 <column-type db="generic" type="one-digit"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_deleted" nullable="n" description="flag indicating that the version is deleted">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_editable" nullable="n" description="flag indicating that version is editable">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="pred_version" nullable="y" description="the predecessor version number">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="checkin_date" nullable="y" description="date the asset was checked in if not a working version">
+				 <column-type db="generic" type="datetime"/>
+				 <column-type db="oracle" type="timestamp"/>
+			</column>
+
+			<!-- Data Columns -->
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+   
+    <column default="" description="" i18n="n" name="type" nullable="y">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    <column default="" description="" i18n="y" name="name" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="description" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="template" nullable="y">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="production_url" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="enabled" nullable="n">
+      <column-type db="generic" type="one-digit"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="site_down_url" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="open_date" nullable="y">
+    <column-type db="generic" type="datetime"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="pre_opening_url" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="closing_date" nullable="y">
+    <column-type db="generic" type="datetime"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="post_closing_url" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="modification_time" nullable="y">
+    <column-type db="generic" type="datetime"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="creation_time" nullable="y">
+    <column-type db="generic" type="datetime"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="author" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="last_modified_by" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="site_icon" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="favicon" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="site_priority" nullable="y">
+      <column-type db="generic" type="integer"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="context_root" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+        
+    <column default="" description="" i18n="n" name="access_level" nullable="y">
+      <column-type db="generic" type="integer"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="realm_id" nullable="y">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="endeca_site_id" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+
+    
+
+  
+			<primary-key name="site_configurat1_p">
+      <index-column column="id" order="asc" seq="1"/>
+    	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+			<index name="site_configura_wsx" table="site_configuration">
+				 <index-column column="workspace_id" order="asc" seq="1"/>
+			</index>
+			<index name="site_configura_cix" table="site_configuration">
+				 <index-column column="checkin_date" order="asc" seq="1"/>
+			</index>
+	 </table>
+
+  
+	 <table name="site_additional_urls" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="additional_production_url" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="idx" nullable="n">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    
+
+  
+			<primary-key name="siteadditio_url1_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="idx" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+
+  
+	 <table name="site_types" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="site_type" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    
+  
+			<primary-key name="site_types1_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="site_type" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+  
+  
+	 <table name="site_group" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="workspace_id" nullable="n" description="the id of the workspace that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="branch_id" nullable="n" description="the id of the branch that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="is_head" nullable="n" description="is this version the head of branch">
+				 <column-type db="generic" type="one-digit"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_deleted" nullable="n" description="flag indicating that the version is deleted">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_editable" nullable="n" description="flag indicating that version is editable">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="pred_version" nullable="y" description="the predecessor version number">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="checkin_date" nullable="y" description="date the asset was checked in if not a working version">
+				 <column-type db="generic" type="datetime"/>
+				 <column-type db="oracle" type="timestamp"/>
+			</column>
+
+			<!-- Data Columns -->
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="y" name="display_name" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="type" nullable="y">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    
+
+  
+			<primary-key name="site_group1_p">
+      <index-column column="id" order="asc" seq="1"/>
+    	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+			<index name="site_group_wsx" table="site_group">
+				 <index-column column="workspace_id" order="asc" seq="1"/>
+			</index>
+			<index name="site_group_cix" table="site_group">
+				 <index-column column="checkin_date" order="asc" seq="1"/>
+			</index>
+	 </table>
+  
+  
+	 <table name="site_group_sites" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->    
+    
+    <column default="" description="" i18n="n" name="site_id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="site_group_id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    
+
+    
+    
+    
+  
+			<primary-key name="site_group_sites_p">
+      <index-column column="site_id" order="asc" seq="1"/>
+      <index-column column="site_group_id" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+  
+  
+	 <table name="site_group_shareable_types" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->    
+    
+    <column default="" description="" i18n="y" name="shareable_types" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="site_group_id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    
+
+    
+  
+			<primary-key name="site_group_share_p">
+      <index-column column="shareable_types" order="asc" seq="1"/>
+      <index-column column="site_group_id" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+</schema><!-- @version $Id: //product/DAS/version/11.2/templates/DAS/sql/site_ddl.xml#3 $$Change: 1179550 $-->

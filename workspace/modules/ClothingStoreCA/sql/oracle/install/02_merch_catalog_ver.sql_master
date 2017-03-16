@@ -1,0 +1,12 @@
+-- pub versioned
+--
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_product_catalog_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_promotion_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_claimable_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_priceLists_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_commerce_site_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_custom_catalog_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_location_ddl.sql
+
+@@DYNAMO_ROOT@/DAF/Search/Versioned/sql/db_components/oracle/versioned_search_site_ddl.sql
+

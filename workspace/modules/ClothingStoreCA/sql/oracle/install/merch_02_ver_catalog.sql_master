@@ -1,0 +1,17 @@
+
+-- Note replace @DAS_ROOT@ with the DAS installation directory
+-- Note replace @DYNAMO_ROOT@ with the ATG installation directory
+
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_claimable_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_priceLists_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_product_catalog_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_promotion_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_promotion_ddl.sql
+@@DYNAMO_ROOT@/DCS/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_location_ddl.sql
+
+--
+-- Uncomment for Custom Catalogs
+--
+
+-- @@DYNAMO_ROOT@/DCS/CustomCatalogs/Versioned/sql/db_components/@DATABASE_TYPE@/versioned_custom_catalog_ddl.sql
+

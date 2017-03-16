@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is a generated file -->
+
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="versioned_location_ddl" description="">
+<comment> @version $Id: //product/DCS/version/11.2/templates/DCS/sql/location_ddl.xml#2 $$Change: 953229 $</comment>
+   
+	 <table name="dcs_location" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="workspace_id" nullable="n" description="the id of the workspace that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="branch_id" nullable="n" description="the id of the branch that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="is_head" nullable="n" description="is this version the head of branch">
+				 <column-type db="generic" type="one-digit"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_deleted" nullable="n" description="flag indicating that the version is deleted">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_editable" nullable="n" description="flag indicating that version is editable">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="pred_version" nullable="y" description="the predecessor version number">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="checkin_date" nullable="y" description="date the asset was checked in if not a working version">
+				 <column-type db="generic" type="datetime"/>
+				 <column-type db="oracle" type="timestamp"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="ext_loc_id" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="type" nullable="n">
+         <column-type db="generic" type="integer"/>
+      </column>
+      <column default="" description="" i18n="n" name="version" nullable="n">
+         <column-type db="generic" type="integer"/>
+      </column>
+      <column default="" description="" i18n="n" name="name" nullable="y">
+         <column-type db="generic" length="254" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="start_date" nullable="y">
+         <column-type db="generic" type="datetime"/>
+      </column>
+      <column default="" description="" i18n="n" name="end_date" nullable="y">
+         <column-type db="generic" type="datetime"/>
+      </column>
+      <column default="" description="" i18n="n" name="latitude" nullable="n">
+         <column-type db="generic" length="19" scale="7" type="numeric"/>
+      </column>
+      <column default="" description="" i18n="n" name="longitude" nullable="n">
+         <column-type db="generic" length="19" scale="7" type="numeric"/>
+      </column>
+      
+    
+			<primary-key name="dcs_location_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+			<index name="dcs_location_wsx" table="dcs_location">
+				 <index-column column="workspace_id" order="asc" seq="1"/>
+			</index>
+			<index name="dcs_location_cix" table="dcs_location">
+				 <index-column column="checkin_date" order="asc" seq="1"/>
+			</index>
+	 </table>
+    
+	 <table name="dcs_location_sites" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="site_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      
+      
+    
+			<primary-key name="dcs_location_sites_pk">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="site_id" order="asc" seq="2"/>
+      	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+			<index description="" is-unique="n" name="location_site_id_idx" table="dcs_location_sites">
+        <index-column column="site_id" order="asc" seq="1"/>
+      </index>
+	 </table>
+    
+	 <table name="dcs_loc_site_grps" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="site_group_id" nullable="n">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      
+      
+      
+    
+			<primary-key name="dcs_loc_sgrps_pk">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="site_group_id" order="asc" seq="2"/>
+      	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+    
+	 <table name="dcs_location_store" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="hours" nullable="y">
+         <column-type db="generic" length="64" type="varchar"/>
+      </column>
+      
+    
+			<primary-key name="dcs_loc_store_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+	 </table>
+    
+	 <table name="dcs_location_addr" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="address_1" nullable="y">
+         <column-type db="generic" length="50" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="address_2" nullable="y">
+         <column-type db="generic" length="50" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="address_3" nullable="y">
+         <column-type db="generic" length="50" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="city" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="county" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="state_addr" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="postal_code" nullable="y">
+         <column-type db="generic" length="10" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="country" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="phone_number" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="fax_number" nullable="y">
+         <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="y" name="email" nullable="y">
+         <column-type db="generic" length="255" type="varchar"/>
+      </column>
+      
+      
+    
+			<primary-key name="dcspp_loc_addr_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+	 </table>
+    
+	 <table name="dcs_location_rltd_media" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="sequence_num" nullable="n">
+        <column-type db="generic" type="integer"/>
+        <column-type db="oracle" type="integer"/>
+      </column>
+      <column default="" description="" i18n="n" name="related_media_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      
+          
+      
+    
+			<primary-key name="dcs_location_rltd_media_p">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="sequence_num" order="asc" seq="2"/>
+      	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+    
+	 <table name="dcs_location_rltd_article" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+      <column default="" description="" i18n="n" name="location_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      <column default="" description="" i18n="n" name="sequence_num" nullable="n">
+        <column-type db="generic" type="integer"/>
+        <column-type db="oracle" type="integer"/>
+      </column>
+      <column default="" description="" i18n="n" name="related_article_id" nullable="n">
+        <column-type db="generic" length="40" type="varchar"/>
+      </column>
+      
+          
+      
+    
+			<primary-key name="dcs_location_rltd_article_p">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="sequence_num" order="asc" seq="2"/>
+      	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+    </schema><!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/location_ddl.xml#2 $$Change: 953229 $-->

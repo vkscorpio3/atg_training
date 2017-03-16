@@ -1,0 +1,424 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="returns_ddl">
+<comment><![CDATA[ @version $Id: //product/DCS/version/11.2/templates/DCS/sql/order_returns_ddl.xml#2 $$Change: 1179550 $]]></comment>
+   <table name="csr_exch">
+      <column name="id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="order_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="created_date" nullable="n">
+		<column-type db="generic" type="timestamp"/>
+      </column>
+      <column name="status" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="rma" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="repl_order_id" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="bal_pmt_id" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="sugg_tax_refund" nullable="n">
+         <column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <column name="actl_tax_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>    
+	  </column>
+      <column name="sugg_ship_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>     
+      </column>
+      <column name="actl_ship_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>     
+	  </column>
+      <column name="other_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>     
+	  </column>
+      <column name="sc_recipient" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="proc_immed" nullable="n">
+         <column-type db="generic" type="tinyint"/>
+         <column-type db="oracle" type="number" length="1" scale="0"/>
+         <column-type db="db2" type="numeric" length="4" scale="0"/>
+         <column-type db="mssql" type="numeric" length="1" scale="0"/>
+	  </column>
+      <column name="processed" nullable="n">
+         <column-type db="generic" type="tinyint"/>
+         <column-type db="oracle" type="number" length="1" scale="0"/>
+         <column-type db="db2" type="numeric" length="4" scale="0"/>
+         <column-type db="mssql" type="numeric" length="1" scale="0"/>
+	  </column>
+      <column name="origin_of_return" nullable="n">
+        <column-type db="generic" type="integer"/>
+      </column>
+      <column name="agent_id" nullable="y">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_exch_p">
+         <index-column column="id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="csr_exchordr_d_f" referenced-table="dcspp_order" index-name="csr_exchorder_id">
+         <fkey-column referencing-column="order_id" referenced-column="order_id"/>
+      </foreign-key>
+      <check name="csr_exch1_c">
+         <check-expr expression="proc_immed in (0,1)" db="generic"/>
+      </check>
+      <check name="csr_exch2_c">
+         <check-expr expression="processed in (0,1)" db="generic"/>
+      </check>
+   </table>
+  <table name="csr_exch_cmts">
+    <column name="comment_id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="return_id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="agent_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="comment_data" nullable="n" i18n="n">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <column name="creation_date" nullable="y">
+		<column-type db="generic" type="timestamp"/>
+    </column>
+    <column name="version" nullable="n">
+      <column-type db="generic" type="integer"/>
+    </column>
+    <primary-key name="csrexchcmmt_p">
+      <index-column column="comment_id" order="asc" seq="1"/>
+      <index-column column="return_id" order="asc" seq="2"/>
+    </primary-key>
+    <foreign-key name="csrexchcmmt_f" referenced-table="csr_exch" index-name="csrexchcmmt1_x">
+      <fkey-column referencing-column="return_id" referenced-column="id"/>
+    </foreign-key>
+  </table>
+
+  <table name="csr_exch_reasons">
+      <column name="id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="description" nullable="n">
+         <column-type db="generic" type="varchar" length="254"/>
+      </column>
+      <primary-key name="csr_exch_reasons_p">
+         <index-column column="id" order="asc" seq="1"/>
+      </primary-key>
+   </table>
+   <table name="csr_exch_item_disp">
+      <column name="id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="description" nullable="n">
+         <column-type db="generic" type="varchar" length="254"/>
+      </column>
+      <column name="upd_inventory" nullable="n">
+         <column-type db="generic" type="tinyint"/>
+         <column-type db="oracle" type="number" length="1" scale="0"/>
+         <column-type db="db2" type="numeric" length="4" scale="0"/>
+         <column-type db="mssql" type="numeric" length="1" scale="0"/>
+	</column>
+      <primary-key name="csr_exchitem_dis_p">
+         <index-column column="id" order="asc" seq="1"/>
+      </primary-key>
+      <check name="csr_exchitem_dis_c">
+         <check-expr expression="upd_inventory in (0,1)" db="generic"/>
+      </check>
+   </table>
+   <table name="csr_return_fee">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="return_fee" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <primary-key name="csr_return_fee_p">
+         <index-column column="exchange_id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="csr_rfexchng_d_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   <table name="csr_exch_item">
+      <column name="id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="commerce_item_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="shipping_group_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="quantity_to_return" nullable="n">
+         <column-type db="generic" type="numeric" length="19" scale="0"/>
+         <column-type db="mysql" type="bigint" />
+      </column>
+	  <column name="qty_with_fraction_to_return" nullable="y">
+         <column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <column name="quantity_to_repl" nullable="n">
+         <column-type db="generic" type="numeric" length="19" scale="0"/>
+         <column-type db="mysql" type="bigint" />
+      </column>
+	  <column name="qty_with_fraction_to_repl" nullable="y">
+         <column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <column name="reason" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="ret_shipment_req" nullable="n">
+         <column-type db="generic" type="tinyint"/>
+         <column-type db="oracle" type="number" length="1" scale="0"/>
+         <column-type db="db2" type="numeric" length="4" scale="0"/>
+         <column-type db="mssql" type="numeric" length="1" scale="0"/>
+     </column>
+      <column name="quantity_received" nullable="n">
+         <column-type db="generic" type="numeric" length="19" scale="0"/>
+         <column-type db="mysql" type="bigint" />
+      </column>
+	  <column name="qty_with_fraction_received" nullable="y">
+         <column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <column name="disposition" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="refund_amount" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>     
+	  </column>
+      <column name="status" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="exch_ref" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="sugg_ship_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <column name="actl_ship_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+	  </column>
+      <column name="sugg_tax_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+	  </column>
+      <column name="actl_tax_refund" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+
+      <primary-key name="csr_exch_item_p">
+         <index-column column="id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="csr_exchtmdspstn_f" referenced-table="csr_exch_item_disp" index-name="csr_exch_itemdisp">
+         <fkey-column referencing-column="disposition" referenced-column="id"/>
+      </foreign-key>
+      <foreign-key name="csr_exchtmresn_f" referenced-table="csr_exch_reasons" index-name="csr_exch_itmreason">
+         <fkey-column referencing-column="reason" referenced-column="id"/>
+      </foreign-key>
+      <foreign-key name="csr_exchtshippng_f" referenced-table="dcspp_ship_group" index-name="csr_exch_itmshpgrp">
+         <fkey-column referencing-column="shipping_group_id" referenced-column="shipping_group_id"/>
+      </foreign-key>
+      <check name="csr_exch_item1_c">
+         <check-expr expression="ret_shipment_req in (0,1)" db="generic"/>
+      </check>
+   </table>
+   <table name="csr_exch_items">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="exchange_item_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_exch_items_p">
+         <index-column column="exchange_id" order="asc" seq="1"/>
+         <index-column column="exchange_item_id" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="csr_exchtxchng_d_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+      <foreign-key name="csr_exchtxchng_t_f" referenced-table="csr_exch_item" index-name="csr_exch_exch_itm">
+         <fkey-column referencing-column="exchange_item_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   <table name="csr_exch_method">
+      <column name="id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="type" nullable="n">
+         <column-type db="generic" type="integer"/>
+         <column-type db="oracle" type="integer"/>
+      </column>
+      <column name="amount" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+	  </column>
+      <primary-key name="csr_exch_method_p">
+         <index-column column="id" order="asc" seq="1"/>
+      </primary-key>
+   </table>
+   <table name="csr_exch_methods">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="exchange_method_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_exch_methods_p">
+         <index-column column="exchange_id" order="asc" seq="1"/>
+         <index-column column="exchange_method_id" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="csr_exchmxchng_d_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+      <foreign-key name="csr_exchmxchng_m_f" referenced-table="csr_exch_method" index-name="csr_exch_method_id">
+         <fkey-column referencing-column="exchange_method_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   <table name="csr_cc_exch_method">
+      <column name="exchange_method_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="payment_group_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_cc_exch_mthd_p">
+         <index-column column="exchange_method_id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="csr_ccexcxchng_m_f" referenced-table="csr_exch_method">
+         <fkey-column referencing-column="exchange_method_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   <table name="csr_sc_exch_method">
+      <column name="exchange_method_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="payment_group_id" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="sc_id" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_sc_exch_mthd_p">
+         <index-column column="exchange_method_id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="csr_scexcxchng_m_f" referenced-table="csr_exch_method">
+         <fkey-column referencing-column="exchange_method_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+
+   <table name="csr_exch_ipromos">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="promotion_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csrexchipromos_p">
+       <index-column column="exchange_id" order="asc" seq="1"/>
+       <index-column column="promotion_id" order="asc" seq="2"/>
+     </primary-key>
+      <foreign-key name="csr_ex_ipromos_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   
+   <table name="csr_exch_opromos">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="promotion_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csrexchopromos_p">
+       <index-column column="exchange_id" order="asc" seq="1"/>
+       <index-column column="promotion_id" order="asc" seq="2"/>
+     </primary-key>
+      <foreign-key name="csr_ex_opromos_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+
+   <table name="csr_promo_adjust">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="promotion_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="value_adjust" nullable="n">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+      </column>
+      <primary-key name="csrpromoadjust_p">
+       <index-column column="exchange_id" order="asc" seq="1"/>
+       <index-column column="promotion_id" order="asc" seq="2"/>
+     </primary-key>
+      <foreign-key name="csr_promo_adj_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   
+   
+   <table name="csr_nonreturn_adj">
+      <column name="exchange_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="ica_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="csr_nr_adj_p">
+         <index-column column="exchange_id" order="asc" seq="1"/>
+         <index-column column="ica_id" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="csr_nr_adj_f" referenced-table="csr_exch">
+         <fkey-column referencing-column="exchange_id" referenced-column="id"/>
+      </foreign-key>
+   </table>
+   
+   
+   <table name="csr_item_adj">
+    <column name="ica_id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="type" nullable="y">
+         <column-type db="generic" type="integer"/>
+         <column-type db="oracle" type="integer"/>
+    </column>
+    <column name="commerce_item_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="shipping_group_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+      <column name="quantity_adj" nullable="n">
+         <column-type db="generic" type="numeric" length="19" scale="0"/>
+         <column-type db="mysql" type="bigint" />
+      </column>
+	<column name="quantity_with_fraction_adj" nullable="y">
+        <column-type db="generic" type="numeric" length="19" scale="7"/>
+    </column>
+    <column name="amount_adj" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>    
+	</column>
+    <column name="ods_adj" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+    </column>
+    <column name="mas_adj" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+	</column>
+    <column name="tax_adj" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>    
+	</column>
+    <column name="shipping_adj" nullable="y">
+		<column-type db="generic" type="numeric" length="19" scale="7"/>
+	</column>
+    <primary-key name="csritemadj_p">
+      <index-column column="ica_id" order="asc" seq="1"/>
+    </primary-key>
+  </table>
+
+
+</schema>
+<!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/order_returns_ddl.xml#2 $$Change: 1179550 $ -->

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="data" default="importxmldata" basedir=".">
+    <target name="importxmldata" description="uses startSQLRepository to import data">
+        <echo message="import data to productcatalog" />
+        <echo message="${atg.imp.catalog.arg}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.catalog.arg}" />
+	      <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+        <echo message="${atg.imp.inventory.arg}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.inventory.arg}" />
+	      <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+		 <echo message="${atg.imp.order.arg}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.order.arg}" />
+		  <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+ <echo message="${atg.imp.billing.arg}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.billing.arg}" />
+		  <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+		 <echo message="${atg.imp.user.arg}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.user.arg}" />
+		  <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+		<echo message="${atg.imp.catalog.arg1}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.catalog.arg1}" />
+		  <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+		<echo message="${atg.imp.catalog.arg2}"/>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.catalog.arg2}" />
+		  <env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+    </target>
+    
+    
+   	<target name="exportxmldata" description="Runs a DDL against a sql schema and host">
+		<echo message="export data from ${atg.startsqlrepository}  ${atg.exp.catalog.arg}" />
+         
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.exp.catalog.arg}" />
+		</exec>
+		
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.exp.price.arg}" />
+		</exec>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.exp.inventory.arg}" />
+		</exec>
+        
+	</target>
+
+	<target name="startsqlrepositorypub" description="Calls ATG startSQLRepository for import">
+
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.bcc.users.arg}" />
+			<env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+		<exec executable="${atg.startsqlrepository}" failonerror="yes" os="Windows 7,Windows 2003,Windows 2000,Windows NT,Windows XP">
+			<arg line="${atg.imp.bcc.acc.arg}" />
+			<env key="CLASSPATH" value="${database.driver.path}"/>
+		</exec>
+	<exec executable="${atg.startsqlrepository}"
+	              os="Windows 2003:Windows NT:Windows 2000:Windows XP"
+	              failonerror="yes">
+			<env key="CLASSPATH" value="${database.driver.path}"/>
+				<arg line="-m ${module.for.ca.import}" />
+			<arg line="-m DCS-UI" />
+			<arg line="-s ${server.for.ca.import}"/>
+				<arg line="-workspace ${import.workspace.name}" />
+				<arg line="-comment ${import.workspace.name}" />
+				<arg line="-repository ${import.repository}" />
+				<arg line="-import ${import.data.file}" />
+		</exec>
+  </target>
+
+	<target name="importpubxmldata" description="uses startSQLRepository to import data">
+		<!-- Create some sample users -->
+		<!--
+	      <ant target="startsqlrepository">
+	        <property name="import.data.file" value="${basedir}/data/userdata.xml"/>
+	        <property name="import.repository" value="/atg/userprofiling/ProfileAdapterRepository"/>
+	      </ant>
+	      -->
+		<ant target="startsqlrepositorypub">
+			<property name="import.data.file" value="${data.catalog.directory}"/>
+			<property name="import.repository" value="/atg/commerce/catalog/ProductCatalog"/>
+			<property name="import.workspace.name" value="SLT Base Catalog Import" />
+		</ant>
+	</target>
+    
+</project>

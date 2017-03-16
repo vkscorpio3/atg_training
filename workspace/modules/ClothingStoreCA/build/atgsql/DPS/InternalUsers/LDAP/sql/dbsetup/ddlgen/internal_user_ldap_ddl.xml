@@ -1,0 +1,29 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="user_ddl">
+<comment><![CDATA[ @version $Id: //product/DPS/version/11.2/templates/DPS/InternalUsers/LDAP/sql/internal_user_ldap_ddl.xml#1 $$Change: 953229 $]]></comment>
+<comment><![CDATA[
+This file contains create table statements, which will configure 
+your database for use with the new DPS schema.
+]]></comment>
+
+<comment><![CDATA[
+Add the ldap organization definition.  
+]]></comment>
+   <table name="dpi_organization_ldap">
+      <column name="org_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="ldap" nullable="y">
+         <column-type db="generic" type="numeric" length="1" scale="0"/>
+         <column-type db="sybase" type="tinyint" />
+		 <column-type db="mysql" type="tinyint"/>
+      </column>
+      <primary-key name="dpi_organization_ldap_p">
+         <index-column column="org_id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="dpi_organizationldap_f" referenced-table="dpi_organization">
+         <fkey-column referencing-column="org_id" referenced-column="org_id"/>
+      </foreign-key>
+   </table>
+</schema>
+<!-- @version $Id: //product/DPS/version/11.2/templates/DPS/InternalUsers/LDAP/sql/internal_user_ldap_ddl.xml#1 $$Change: 953229 $ -->

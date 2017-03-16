@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="CA" default="all" basedir=".">
+
+	<property environment="env" />
+	<!-- set global defaults  -->
+
+	<!-- global.dir is used to resolve dev environment resources such as 
+         checkstyle libraries, custom ant tasks, etc..  Essentially stuff 
+         we don't want to stick directly into our module structure. In this 
+         framework the global directory is the /modules directory. -->
+	<property name="global.dir" value=".." />
+
+	<!-- Common dir identifies the location of the common ant tasks that all 
+         submodules import for use or overriding -->
+	<property name="common.dir" value="${global.dir}/" />
+	<property file="${common.dir}/${user.name}.properties" />
+	<property file="${common.dir}/common.properties" />
+		<property file="${common.dir}/database.properties" />
+	<property file="build.properties" />
+
+	<!-- Import common tasks -->
+	<import file="${common.dir}/common.xml" />
+	
+	<!--set current server to deploy.-->
+	<if name="default.ear.todeploy.server" value="Weblogic">
+		<property name="deploy.definition.file" value="deploy-weblogic.xml" />
+		<else>
+			<property name="deploy.definition.file" value="deploy-jboss.xml"/>
+		</else>
+	</if>
+		
+	<import file="${common.dir}/${deploy.definition.file}" />
+	<import file="${common.dir}/sql.xml" />
+
+	<!-- Override classpath for the project. -->
+	<path id="lib.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+	</path>
+
+	<!-- Define the all task.  We do this here because we need to call tasks imported 
+         in both the common.xml and deploy.xml files.  This may seem a bit odd but it
+         feels better to segregate common tasks from j2ee deployment tasks and add 
+         this extra bit of layering than have one massive common task file which has
+         buttloads of targets, making it difficult to read.  You get my point separating
+         the tasks in multiple imports makes this complex environment easier to get 
+         around.  -->
+	<target name="all" depends="clean,build,reports,install,deploy" description="Cleans, builds, checks and installs the project." />
+
+	<!-- Copy the CA specific taglibraries to our application -->
+	<target name="-copy-taglibs">
+		<echo message="Copying Tag Libraries to directory ${target.webinf.dir}" />
+
+		<!-- Taglib locations -->
+		<property name="pws.taglib.tld.dir" value="${dynamo.root.dir}/Publishing/taglib" />
+		<property name="pws.taglib.lib.dir" value="${dynamo.root.dir}/Publishing/taglib" />
+
+		<copy todir="${target.webinf.dir}/lib" verbose="true">
+			<fileset dir="${pws.taglib.lib.dir}">
+				<exclude name="*.tld" />
+			</fileset>
+		</copy>
+
+		<copy todir="${target.webinf.dir}/taglib" verbose="true">
+			<fileset dir="${pws.taglib.tld.dir}">
+				<exclude name="*.jar" />
+			</fileset>
+		</copy>
+
+	</target>
+
+	<!-- override the original installsql task so we can specify our own ca schema settings -->
+	<target name="-installsql" description="Copy the sql to the deploy directory" depends="-coredirsexist" if="sqldir.exists">
+
+		<echo message="Copying project sql to ${install.dir}/sql" />
+
+		<!-- <delete dir="${install.dir}/sql" /> -->
+		<mkdir dir="${install.dir}/sql" />
+
+		<!-- copy any text files -->
+		<patternset id="sql.text.files">
+			<include name="**/*.TXT" />
+			<include name="**/*.txt" />
+		</patternset>
+		<copy todir="${install.dir}/sql" verbose="true" filtering="true">
+			<fileset dir="${sql.dir}">
+				<patternset refid="sql.text.files" />
+			</fileset>
+		</copy>
+
+		<!-- Copy the SQL files specific to this module -->
+		<copy todir="${install.dir}/sql" verbose="true">
+			<fileset dir="${sql.main.dir}" />
+			<mapper type="glob" from="*.sql" to="*.sql" />
+		</copy>
+		<copy todir="${install.dir}/sql" verbose="true">
+			<fileset dir="${sql.dir}" />
+			<mapper type="glob" from="*.sql" to="*.sql" />
+		</copy>
+
+		<!-- copy the SQL files from to the main sql module -->
+		<!-- The destdir goes into the scripts as the filter, so this isn't as stupid as it looks. -->
+		<copytemplate srcdir="${sql.main.dir}/${database.type}/install" coreschemauser="${jdbc.pub.user}" catalogschemauser="${jdbc.pub.user}" destdir="${install.dir}/sql/${database.type}/install" />
+
+		<copytemplate srcdir="${sql.main.dir}/${database.type}/uninstall" coreschemauser="${jdbc.pub.user}" catalogschemauser="${jdbc.pub.user}" destdir="${install.dir}/sql/${database.type}/uninstall" />
+
+
+		<copytemplate srcdir="${sql.dir}/${database.type}/install" coreschemauser="${jdbc.pub.user}" catalogschemauser="${jdbc.pub.user}" destdir="${install.dir}/sql/${database.type}/install" />
+
+		<copytemplate srcdir="${sql.dir}/${database.type}/uninstall" coreschemauser="${jdbc.pub.user}" catalogschemauser="${jdbc.pub.user}" destdir="${install.dir}/sql/${database.type}/uninstall" />
+
+
+
+		<antcall target="-export-atg-sql" />
+
+		<!-- Steal the shell script from the main sql directory -->
+		<filter token="DAS_ROOT" value="${das.root.dir}" />
+		<filter token="DYNAMO_ROOT" value="${dynamo.root.dir}" />
+		<patternset id="sql.shell.files">
+			<include name="**/*.sh" />
+			<include name="**/*.bat" />
+		</patternset>
+		<copy todir="${install.dir}/sql" verbose="true" filtering="true">
+			<fileset dir="${sql.main.dir}">
+				<patternset refid="sql.shell.files" />
+			</fileset>
+		</copy>
+
+
+	</target>
+
+	<!-- Update this task with the sql destination for any versioned schema -->
+	<target name="-performpubversql" description="Performs an sqlplus statement against the Pub versioning schema">
+		<ant target="-performsql">
+			<property name="jdbc.user" value="${jdbc.pubcatalog.user}" />
+			<property name="jdbc.password" value="${jdbc.pubcatalog.password}" />
+		</ant>
+		<ant target="-performsql">
+			<property name="jdbc.user" value="${jdbc.pubcore.user}" />
+			<property name="jdbc.password" value="${jdbc.pubcore.password}" />
+			<property name="sql.ddl.file" value="${initial.topology}" />
+		</ant>
+	</target>
+
+	<target name="create-users" description="Create Schema users script against the SYSTEM Schema">
+	</target>
+
+	<!-- Creates the modules tables.
+         This task creates tables for both the Pub Server and Staging targets.  The Production target is handled
+         via the createtables task in main. This is so that only when creating a CA environment will multiple
+         main instances be created.
+    -->
+	<target name="createtables" description="Creates All ATG Tables for Publishing Server">
+		<!-- If specified, create a schema for the Publishing Server -->
+		<if name="pub.createdrop.coreschema" value="true">
+			<ant target="createcorepubtables" />
+			<else>
+				<echo>pub.createdrop.coreschema set to false - no invocation of sql for this module will occur</echo>
+			</else>
+		</if>
+		<if name="pub.createdrop.verschema" value="true">
+			<ant target="createverpubtables" />
+			<else>
+				<echo>pub.createdrop.verschema  set to false - no invocation of sql for this module will occur</echo>
+			</else>
+		</if>
+
+	</target>
+
+	<target name="createcorepubtables" description="Creates Core ATG Tables for Publishing Server">
+		<sleep seconds="3" />
+		<echo>Creating Core Publishing Tables</echo>
+		<!-- Core ATG Tables -->
+		<foreach list="${sql.install.atg.core}" delimiter="," trim="true" param="sql.ddl.file" target="-performpubcoresql" inheritall="true">
+		</foreach>
+		<!-- Commerce catalog tables -->
+		<echo>================= "${sql.install.atg.catalog}"</echo>
+		<foreach list="${sql.install.atg.catalog}" delimiter="," trim="true" param="sql.ddl.file" target="-performpubcatalogsql" inheritall="true">
+		</foreach>
+		<!-- custom Commerce catalog tables -->
+		<foreach list="${sql.install.atg.custom.catalog}" delimiter="," trim="true" param="sql.ddl.file" target="-performpubcatalogsql" inheritall="true">
+		</foreach>
+		<!-- Project specific Tables -->
+		<foreach list="${sql.install.proj.core}" delimiter="," trim="true" param="sql.ddl.file" target="-performpubcoresql" inheritall="true">
+		</foreach>
+	</target>
+
+	<target name="createverpubtables" description="Creates Versioned Tables for Publishing Server">
+		<sleep seconds="3" />
+		<echo>
+		</echo>
+		<echo>Creating Versioned Tables</echo>
+		<ant target="-performpubversql">
+			<property name="sql.ddl.file" value="${sql.install.proj.core.ver}" />
+		</ant>
+	</target>
+
+
+	<!-- Drops the modules tables. -->
+	<target name="droptables" description="Drops All ATG Tables for Publishing Server and Staging Target">
+		<!-- If specified, create the schema for the Publishing server -->
+		<if name="pub.createdrop.verschema" value="true">
+			<ant target="dropverpubtables" />
+		</if>
+		<if name="pub.createdrop.coreschema" value="true">
+			<ant target="dropcorepubtables" />
+		</if>
+		<delete file="DELETE_ME.SQL" failonerror="false" verbose="true" />
+	</target>
+
+	<target name="dropcorepubtables" description="Drops All ATG Tables for the Publishing server">
+		<sleep seconds="3" />
+		<echo>
+		</echo>
+		<echo>Dropping Core Publishing Tables</echo>
+		<!-- ATG catalog and pricing -->
+		<!--ant target="-performpubsql">
+            <property name="sql.ddl.file" value="${sql.uninstall.alltables}" />
+        </ant-->
+		<!-- Core ATG Tables -->
+		<ant target="-performpubcoresql">
+			<property name="sql.ddl.file" value="${sql.uninstall.alltables}" />
+		</ant>
+	</target>
+
+
+
+	<target name="dropverpubtables" description="Drops All versioning tables from the Publishing server">
+		<sleep seconds="3" />
+		<echo>
+		</echo>
+		<echo>Dropping Versioned Publishing Tables</echo>
+		<!-- Versioned content Tables -->
+		<!--
+        <ant target="-performpubversql">
+            <property name="sql.ddl.file" value="${sql.uninstall.alltables}" />
+        </ant>
+		-->
+	</target>
+
+	<!-- Publishing, BIZUI, & AssetUI imports/configuration
+         Assumes home/localconfig datasource pointing to Publishing environment core schema - the base import scripts do not take a server parameter.
+    -->
+	<target name="-init-ca" description="Imports Publishing, BIZUI, and AssetUI configuration data" depends="-copy-versioned-datasources">
+		<exec dir="${dynamo.home}/../Publishing/base/install/" vmlauncher="false" executable="importPublishing.bat" osfamily="Windows" />
+		<exec dir="${dynamo.home}/../BIZUI/install/" vmlauncher="false" executable="importBizui.bat" osfamily="Windows" />
+		<exec dir="${dynamo.home}/../AssetUI/install/" vmlauncher="false" executable="importAssetUI.bat" osfamily="Windows" />
+		<exec dir="${dynamo.home}/../DPS-UI/install/" vmlauncher="false" executable="importDPSUI.bat" osfamily="Windows" />
+		<exec dir="${dynamo.home}/../BCC/install/" vmlauncher="false" executable="importBCC.bat" osfamily="Windows" />
+
+		<exec dir="${dynamo.home}/../Publishing/base/install/" vmlauncher="false" resolveexecutable="true" executable="importPublishing.sh" os="SunOS,Linux,Mac OS X" />
+		<exec dir="${dynamo.home}/../BIZUI/install/" vmlauncher="false" resolveexecutable="true" executable="importBizui.sh" os="SunOS,Linux,Mac OS X" />
+		<exec dir="${dynamo.home}/../AssetUI/install/" vmlauncher="false" resolveexecutable="true" executable="importAssetUI.sh" os="SunOS,Linux,Mac OS X" />
+		<exec dir="${dynamo.home}/../DPS-UI/install/" vmlauncher="false" resolveexecutable="true" executable="importDPSUI.sh" os="SunOS,Linux,Mac OS X" />
+		<exec dir="${dynamo.home}/../BCC/install/" vmlauncher="false" resolveexecutable="true" executable="importBCC.sh" os="SunOS,Linux,Mac OS X" />
+
+		<!-- import view mappings -->
+		<echo>
+		</echo>
+		<echo>Importing Publishing data using server: ${pub.server.name} and module: ${pub.module.for.import}</echo>
+		<echo>
+		</echo>
+
+		<!--
+		<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="startSQLRepository.bat" osfamily="Windows">
+			<arg line="-s ${pub.server.name} -m ${pub.module.for.import} -repository /atg/bizui/viewmapping/ViewMappingRepository -import ${basedir}/assets/viewMappingContent.xml"/>
+		</exec>
+
+    	<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="startSQLRepository" os="SunOS,Linux">
+			<arg line="-s ${pub.server.name} -m ${pub.module.for.import} -repository /atg/bizui/viewmapping/ViewMappingRepository -import ${basedir}/assets/viewMappingContent.xml"/>
+		</exec>
+		-->
+	</target>
+
+	<target name="-init-merch" description="Imports and Initializes Merchandising" depends="-init-ca,-init-siteadmin">
+		<exec dir="${dynamo.home}/../DCS-UI/install/" vmlauncher="false" executable="importMerchandising.bat" osfamily="Windows" />
+		<exec dir="${dynamo.home}/../DCS-UI/Versioned/install/" vmlauncher="false" executable="importDCSUIVersioned.bat" osfamily="Windows" />
+
+		<exec dir="${dynamo.home}/../DCS-UI/install/" vmlauncher="false" resolveexecutable="true" executable="importMerchandising.sh" os="SunOS,Linux,Mac OS X" />
+		<exec dir="${dynamo.home}/../DCS-UI/Versioned/install/" vmlauncher="false" resolveexecutable="true" executable="importDCSUIVersioned.sh" os="SunOS,Linux,Mac OS X" />
+		<antcall target="-revert-versioned-datasources" />
+	</target>
+
+	<target name="-init-siteadmin" description="Imports and Initializes Site Administration">
+		<exec dir="${dynamo.home}/../SiteAdmin/Versioned/install/" vmlauncher="false" executable="importSiteAdmin.bat" osfamily="Windows" />
+
+		<exec dir="${dynamo.home}/../SiteAdmin/Versioned/install/" vmlauncher="false" resolveexecutable="true" executable="importSiteAdmin.sh" os="SunOS,Linux,Mac OS X" />
+	</target>
+
+
+	<!-- DVC Content/Roles imports - note that these need to be kept in sync with the servers configuration -->
+	<target name="importdata" description="Imports merchandising content">
+		<!--If we need to refresh the Pub data load - it first must be extracted from localProd since we need it in .jar format -->
+
+		<!--
+		<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="exportRepository.bat" osfamily="Windows">
+		    <arg line="-m ${module.root.parent}.Store -s ${pub.server.name} -f ${project.root.dir}/assets/content.jar -r /att/dvc/repositories/DevCentralMainRepository"/>
+		</exec>
+		
+		<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="exportRepository" os="SunOS,Linux">
+		    <arg line="-m ${module.root.parent}.Store -s ${pub.server.name} -f ${project.root.dir}/assets/content.jar -r /att/dvc/repositories/DevCentralMainRepository"/>
+		</exec>  
+		-->
+		<echo message="pub.module.for.import=${pub.module.for.import}" />
+		<echo message="pub.server.name=${pub.server.name}" />
+
+		<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="importRepository.bat" osfamily="Windows">
+			<arg line="-m ${pub.module.for.import} -s ${pub.server.name} -f ${basedir}/data/catalogdata.jar -workspace InitialImport -checkincomment initialcatalogload -noDeleteAll" />
+		</exec>
+
+		<exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="importRepository" os="SunOS,Linux,,Mac OS X">
+			<arg line="-m ${pub.module.for.import} -s ${pub.server.name} -f ${basedir}/data/catalogdata.jar -workspace InitialImport -checkincomment initialcatalogload -noDeleteAll" />
+		</exec>
+
+	</target>
+
+	<target name="init-environment">
+		<antcall target="-init-merch" />
+	</target>
+
+	<!-- Define the Update task.  Done here for the same reason the All task was.
+	     See above comment. 
+	-->
+	<target name="update" depends="build,install,devdeploy" description="Developer centric task to deploy code and JSP faster" />
+	
+
+	<target name="import-crs-ca-system-data" description="Imports and Initializes Merchandising">
+
+		<echo>We are going to remove everything under ${dynamo.home}/localconfig/atg. If something to backup please do it now</echo>
+		<input>Press return after backup. If nothing to recover just press enter</input>
+		<ant target="copy-atg-homelocalcfg" />
+
+		<!-- moved over from importInitialData -->
+		<!-- Imports Publishing, BIZUI, and AssetUI configuration data -->
+		<echo>Dynamo home : ${dynamo.home}"</echo>
+		<exec dir="${dynamo.home}/../Publishing/base/install/" vmlauncher="false" executable="importPublishing.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../BIZUI/install/" vmlauncher="false" executable="importBizui.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../AssetUI/install/" vmlauncher="false" executable="importAssetUI.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DPS-UI/install/" vmlauncher="false" executable="importDPSUI.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../BCC/install/" vmlauncher="false" executable="importBCC.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../SiteAdmin/Versioned/install/" vmlauncher="false" executable="importSiteAdmin.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DCS-UI/install/" vmlauncher="false" executable="importMerchandising.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DCS-UI/Versioned/install/" vmlauncher="false" executable="importDCSUIVersioned.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../Publishing/WebAppRefVer/install/" vmlauncher="false" executable="importPublishing-webapprefver.bat" osfamily="Windows" >
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		
+		<!-- These commands will be executed only in Linux environment -->
+		<exec dir="${dynamo.home}/../Publishing/base/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importPublishing.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../BIZUI/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importBizui.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../AssetUI/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importAssetUI.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DPS-UI/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importDPSUI.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../BCC/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importBCC.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../SiteAdmin/Versioned/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importSiteAdmin.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DCS-UI/install/" vmlauncher="false" executable="bash" os="SunOS,Linux">
+			<arg value="importMerchandising.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		<exec dir="${dynamo.home}/../DCS-UI/Versioned/install/" vmlauncher="false" executable="bash" os="SunOS,Linux,Mac OS X">
+			<arg value="importDCSUIVersioned.sh" />
+			<env key="DYNAMO_HOME" value="${dynamo.home}" />
+			<env key="JAVA_HOME" value="${java.home}" />
+			<env key="CLASSPATH" value="${basedir}/../../lib/ojdbc14.jar" />
+		</exec>
+		
+		<!-- import view mappings -->
+		<!--
+	                    <echo></echo>
+	                    <echo>Importing Publishing data using server: ${pub.server.name} and module: ${pub.module.for.import}</echo>
+	                    <echo></echo>
+
+	                
+	                    <exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="startSQLRepository.bat" osfamily="Windows">
+	                        <arg line="-s ${pub.server.name} -m ${pub.module.for.import} -repository /atg/bizui/viewmapping/ViewMappingRepository -import ${basedir}/assets/viewMappingContent.xml"/>
+	                    </exec>
+	                    <exec dir="${dynamo.home}/bin/" vmlauncher="false" executable="startSQLRepository" os="SunOS,Linux">
+	                         <arg line="-s ${pub.server.name} -m ${pub.module.for.import} -repository /atg/bizui/viewmapping/ViewMappingRepository -import ${basedir}/assets/viewMappingContent.xml"/>
+	                    </exec>
+	                    -->
+		<!-- end copy -->
+
+
+
+
+		<!-- Executed only in an Linux Environment -->
+
+
+
+
+		<!-- removes all config atg localconfig  -->
+		<echo>Deleting the ATG9/home/localconfig/atg folder</echo>
+		<ant target="remove-atg-homelocalcfg" />
+
+	</target>
+
+	<!-- copies the pubserver config to home localconfig  -->
+	<target name="copy-atg-homelocalcfg">
+		<delete failonerror="false" includeEmptyDirs="true">
+			<fileset dir="${dynamo.home}/localconfig/atg" />
+		</delete>
+		<mkdir dir="${dynamo.home}/localconfig/atg" />
+		<copy todir="${dynamo.home}/localconfig/atg">
+			<fileset dir="${dynamo.home}/servers/${pub.server.name}/localconfig/atg" />
+		</copy>
+		<replace dir="${dynamo.home}/localconfig/atg" includes="**/*.properties" token="@URL@" value="${jdbc.url}"/>
+	</target>
+	<!-- deletes home localconfig atg  -->
+	<target name="remove-atg-homelocalcfg">
+		<delete failonerror="false" includeEmptyDirs="true">
+			<fileset dir="${dynamo.home}/localconfig/atg" />
+		</delete>
+	</target>
+
+	
+</project>

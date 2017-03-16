@@ -1,0 +1,21 @@
+
+-- Note replace @DAS_ROOT@ with the DAS installation directory
+-- Note replace @DYNAMO_ROOT@ with the ATG installation directory
+
+-- Install - note that bizui_all_ddl.sql also builds DAS/DPS/DSS tables
+@@DYNAMO_ROOT@/BIZUI/sql/install/@DATABASE_TYPE@/bizui_all_ddl.sql
+
+REM @@DYNAMO_ROOT@/DAS/sql/install/@DATABASE_TYPE@/das_ddl.sql
+REM @@DYNAMO_ROOT@/DPS/sql/install/@DATABASE_TYPE@/dps_ddl.sql
+REM @@DYNAMO_ROOT@/DSS/sql/install/@DATABASE_TYPE@/dss_ddl.sql
+
+REM INSTALL COMMERCE TABLES
+
+-- ATG Commerce Tables
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/inventory_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/order_ddl.sql
+-- @@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/claimable_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/order_markers_ddl.sql
+@@DYNAMO_ROOT@/DCS/AbandonedOrderServices/sql/db_components/@DATABASE_TYPE@/abandoned_order_ddl.sql
+@@DYNAMO_ROOT@/DCS/AbandonedOrderServices/sql/db_components/@DATABASE_TYPE@/abandoned_order_views.sql
+

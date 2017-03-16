@@ -1,0 +1,19 @@
+-- pub core
+--
+@@DYNAMO_ROOT@/BIZUI/sql/install/@DATABASE_TYPE@/bizui_all_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/order_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/dcs_mappers.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/order_markers_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/user_giftlist_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/commerce_user.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/inventory_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/invoice_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/contracts_ddl.sql
+@@DYNAMO_ROOT@/DCS/AbandonedOrderServices/sql/db_components/@DATABASE_TYPE@/abandoned_order_ddl.sql
+@@DYNAMO_ROOT@/DCS/AbandonedOrderServices/sql/db_components/@DATABASE_TYPE@/abandoned_order_views.sql
+@@DYNAMO_ROOT@/BCC/sql/db_components/@DATABASE_TYPE@/workbench_ddl.sql
+
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/organization_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/@DATABASE_TYPE@/order_returns_ddl.sql
+-- custom_catalog_user_ddl.sql
+-- BCC tables

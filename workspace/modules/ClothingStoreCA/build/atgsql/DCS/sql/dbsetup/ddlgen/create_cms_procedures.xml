@@ -1,0 +1,1874 @@
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+      
+<schema name="create_sql_cms_ddl">
+  <procedure name="pr_dcs_sku_sites" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="generate_invalid_cache_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+commit_count number:=0;
+begin
+if generate_invalid_cache_ids=1
+then
+insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+(select distinct prdsku.sku_id, prdsites.site_id
+  from dcs_prd_chldsku prdSku,
+  dcs_product_sites prdsites
+  where prdsku.product_id = prdsites.product_id
+ minus
+ select sku_id, site_id from dcs_sku_sites)
+UNION
+(select sku_id, site_id from dcs_sku_sites
+minus
+select distinct prdsku.sku_id, prdsites.site_id
+  from dcs_prd_chldsku prdSku,
+  dcs_product_sites prdsites
+  where prdsku.product_id = prdsites.product_id)
+) where sku_id not in (select sku_id from dcs_invalidated_sku_ids);
+end if;
+
+commit_count := 0;
+execute immediate 'truncate table dcs_sku_sites';
+
+for i in (select distinct prdsku.sku_id, prdsites.site_id
+  from dcs_prd_chldsku prdSku,
+  dcs_product_sites prdsites
+  where prdsku.product_id = prdsites.product_id)
+loop
+  insert into dcs_sku_sites (sku_id,site_id) values (i.sku_id, i.site_id);
+  if commit_count > commit_size
+  then
+    COMMIT;
+    commit_count := 0;
+  else
+    commit_count := commit_count + 1;
+  end if;
+end loop;
+commit;
+end;
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@generate_invalid_cache_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+  SET NOCOUNT ON
+  declare @commit_size_local integer = @commit_size
+  if @generate_invalid_cache_ids=1
+  begin
+    BEGIN TRANSACTION
+    insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+     (select distinct prdsku.sku_id, prdsites.site_id
+      from dcs_prd_chldsku prdSku,
+      dcs_product_sites prdsites
+      where prdsku.product_id = prdsites.product_id
+      except
+      select sku_id, site_id from dcs_sku_sites)
+    UNION
+    (select sku_id, site_id from dcs_sku_sites
+    except 
+    select distinct prdsku.sku_id, prdsites.site_id
+    from dcs_prd_chldsku prdSku, 
+    dcs_product_sites prdsites
+    where prdsku.product_id = prdsites.product_id)
+   ) sub where sku_id not in (select sku_id from dcs_invalidated_sku_ids)
+     COMMIT TRANSACTION
+  end
+
+  truncate table dcs_sku_sites;
+
+  declare @currentSkuId varchar(40)
+  declare @currentSiteId varchar(40)
+  declare @commit_count int = 0
+  declare skuSitesCursor cursor for select distinct prdsku.sku_id, prdsites.site_id
+      from dcs_prd_chldsku prdSku,
+           dcs_product_sites prdsites
+      where prdsku.product_id = prdsites.product_id
+
+  BEGIN TRANSACTION
+  open skuSitesCursor
+  fetch skuSitesCursor into @currentSkuId, @currentSiteId
+  
+  while @@FETCH_STATUS=0
+  begin
+    insert into dcs_sku_sites (sku_id,site_id) values (@currentSkuId, @currentSiteId)
+    if @commit_count >= @commit_size_local
+    begin
+      COMMIT TRANSACTION
+      BEGIN TRANSACTION
+      set @commit_count = 0;
+    end
+    else
+    begin
+      set @commit_count = @commit_count + 1
+    end
+  fetch skuSitesCursor into @currentSkuId, @currentSiteId
+  end
+  COMMIT TRANSACTION
+  close skuSitesCursor
+  deallocate skuSitesCursor
+END
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="db2">
+      <proc-params>
+        <proc-param spec="v_cmt_size integer"/>
+        <proc-param spec="v_generate_invalid_asset_ids integer" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+  declare v_cmt_count integer default 0;
+  declare SQLCODE integer default 0;
+  declare v_skuId varchar(40);
+  declare v_siteId varchar(40);
+  declare v_cursor cursor with hold for select distinct prdsku.sku_id as my_sku_id, prdsites.site_id as my_site_id from dcs_prd_chldsku prdSku, dcs_product_sites prdsites where prdsku.product_id = prdsites.product_id;
+  if v_generate_invalid_asset_ids=1 then
+    insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+     (select distinct prdsku.sku_id, prdsites.site_id
+      from dcs_prd_chldsku prdSku,
+      dcs_product_sites prdsites
+      where prdsku.product_id = prdsites.product_id
+      except
+      select sku_id, site_id from dcs_sku_sites)
+    UNION
+    (select sku_id, site_id from dcs_sku_sites
+    except
+    select distinct prdsku.sku_id, prdsites.site_id
+    from dcs_prd_chldsku prdSku,
+    dcs_product_sites prdsites
+    where prdsku.product_id = prdsites.product_id)
+   ) sub where sku_id not in (select sku_id from dcs_invalidated_sku_ids);
+  end if;
+  COMMIT;
+  truncate table dcs_sku_sites immediate;
+  open v_cursor;
+  fetch v_cursor into v_skuId, v_siteId;
+  while (SQLCODE=0)
+  do
+    insert into dcs_sku_sites values (v_skuId, v_siteId);
+    if v_cmt_count >= v_cmt_size then
+      COMMIT;
+      set v_cmt_count = 0;
+    else
+      set v_cmt_count = v_cmt_count + 1;
+    end if;
+    fetch v_cursor into v_skuId, v_siteId;
+ END while;
+END
+]]>
+     </proc-body>
+    </proc-db>
+  </procedure>
+
+  <sql>
+    <sql-db db="db2">
+      <![CDATA[
+create or replace type SimpleStringArray as varchar(40) array[];
+]]>
+    </sql-db>
+  </sql>
+
+  <procedure name="pr_dcs_prd_prnt_cats" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="include_dynamic_children_num IN number" />
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="generate_invalid_asset_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+prev_product_id dcs_cat_chldprd.child_prd_id%TYPE;
+prev_catalog_id dcs_cat_catalogs.catalog_id%TYPE;
+prev_category_id dcs_cat_catalogs.catalog_id%TYPE;
+prev_existing_category_id dcs_cat_catalogs.catalog_id%TYPE;
+check_category_id dcs_prd_prnt_cats.category_id%TYPE;
+max_category_id dcs_prd_prnt_cats.category_id%TYPE;
+is_valid_category boolean;
+records_were_returned boolean := false;
+commit_count number := 0;
+TYPE SimpleStringArray IS TABLE OF VARCHAR2(40);
+catalog_id_array SimpleStringArray := SimpleStringArray();
+category_id_array SimpleStringArray := SimpleStringArray();
+product_id_array SimpleStringArray := SimpleStringArray();
+existing_category_id_array SimpleStringArray := SimpleStringArray();
+mainSelect varchar2(2000);
+currentCatalogId varchar2(40);
+currentCategoryId varchar2(40);
+currentProductId varchar2(40);
+currentExistingCategoryId varchar2(40);
+TYPE t_ref_cursor IS REF CURSOR;
+myCursor  t_ref_cursor;
+invalidIdCount number := 0;
+begin
+  if (include_dynamic_children_num=1) 
+  then
+  mainSelect:='select a.catalog_id,
+     a.category_id,
+     a.product_id,
+     catValidPrntCategory.category_id as existing_category_id
+     from (
+     (select catCatalogs.catalog_id as catalog_id,
+        catChldPrd.category_id as category_id,
+        catChldPrd.child_prd_id as product_id
+     from dcs_cat_chldprd catChldPrd
+     join dcs_cat_catalogs catCatalogs
+     on catChldPrd.category_id = catCatalogs.category_id
+     union
+     select catCatalogs1.catalog_id, catDynPrd.category_id, catDynPrd.product_id as product_id
+     from dcs_cat_dynprd catDynPrd, 
+         dcs_cat_catalogs catCatalogs1
+     where catDynPrd.category_id = catCatalogs1.category_id
+  ) a
+  left outer join dcs_prd_prnt_cats catValidPrntCategory
+  on catValidPrntCategory.catalog_id = a.catalog_id
+  and catValidPrntCategory.product_id = a.product_id)
+  order by a.product_id, a.catalog_id';
+else
+  mainSelect:='select a.catalog_id,
+   a.category_id,
+   a.product_id,
+   catValidPrntCategory.category_id as existing_category_id
+   from (
+  (select catCatalogs.catalog_id as catalog_id,
+      catChldPrd.category_id as category_id,
+      catChldPrd.child_prd_id as product_id
+  from dcs_cat_chldprd catChldPrd
+  join dcs_cat_catalogs catCatalogs
+  on catChldPrd.category_id = catCatalogs.category_id
+  ) a
+  left outer join dcs_prd_prnt_cats catValidPrntCategory
+  on catValidPrntCategory.catalog_id = a.catalog_id
+  and catValidPrntCategory.product_id = a.product_id)
+  order by a.product_id, a.catalog_id';
+end if;
+
+open myCursor for mainSelect;
+loop
+  fetch myCursor into currentCatalogId, currentCategoryId, currentProductId, currentExistingCategoryId;
+  EXIT WHEN myCursor%NOTFOUND;
+  if (prev_product_id is not null) and ((currentProductId <> prev_product_id) or (currentCatalogId <> prev_catalog_id))
+  then
+    -- The existing category will be the same across a group of catalog/product. Was there a line
+    -- in the group where 'existing category id' matched 'category id'? If there was then we know
+    -- the existing line is valid. If there wasn't then we'll need to add a row if it was missing
+    -- or update a row if it existed but didn't have an acceptable category.
+   is_valid_category:=FALSE;
+    FOR x IN 1..category_id_array.COUNT LOOP
+       if category_id_array(x)=existing_category_id_array(x) then
+         -- the line we had was valid, exit loop
+         is_valid_category:=TRUE;
+         exit;
+       end if;
+    END LOOP;
+
+  if not is_valid_category then
+    -- Did the product/catalog combination exist at all in the target table?
+    -- If it didn't, we add a row. If it did we update the row.
+    if existing_category_id_array(1) is null
+    then
+      insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+        values (prev_catalog_id, max_category_id, prev_product_id);
+      commit_count := commit_count + 1;
+      if generate_invalid_asset_ids = 1
+      then
+        select count(*) into invalidIdCount  from dcs_invalidated_prd_ids where product_id = prev_product_id;
+        if (invalidIdCount =0 )
+        then
+          insert into dcs_invalidated_prd_ids (product_id) values (prev_product_id);
+        end if;
+      end if;
+    else
+      -- update based on max category
+      update dcs_prd_prnt_cats
+        SET category_id = max_category_id
+        WHERE catalog_id = prev_catalog_id
+        AND product_id = prev_product_id;
+      commit_count := commit_count + 1;
+      if generate_invalid_asset_ids = 1
+        then
+          select count(*) into invalidIdCount  from dcs_invalidated_prd_ids where product_id = prev_product_id;
+          if (invalidIdCount =0 )
+          then
+            insert into dcs_invalidated_prd_ids (product_id) values (prev_product_id);
+          end if;
+      end if;
+    end if;
+  end if;
+
+ -- clear the arrays, reset max category
+ max_category_id := null;
+ catalog_id_array.Delete();
+ category_id_array.Delete();
+ product_id_array.Delete();
+ existing_category_id_array.Delete();
+end if;
+
+records_were_returned:=TRUE;
+
+-- Store the values from the current row.
+catalog_id_array.Extend();
+category_id_array.Extend();
+product_id_array.Extend();
+existing_category_id_array.Extend();
+catalog_id_array(catalog_id_array.COUNT):=currentCatalogId;
+category_id_array(catalog_id_array.COUNT):=currentCategoryId;
+product_id_array(catalog_id_array.COUNT):=currentProductId;
+existing_category_id_array(catalog_id_array.COUNT):=currentExistingCategoryId;
+
+prev_catalog_id:=currentCatalogId;
+prev_product_id:=currentProductId;
+
+if (max_category_id is null) or (currentCategoryId > max_category_id)
+then
+  max_category_id:=currentCategoryId;
+end if;
+
+if mod(commit_count, commit_size)=0
+then
+  commit;
+  commit_count := 0;
+end if;
+end loop;
+
+-- Deal with the final record:
+-- The existing category will be the same across a group. Was there a line
+-- in the group where 'existing category' matched 'category'?
+is_valid_category:=FALSE;
+FOR x IN 1..category_id_array.COUNT LOOP
+  if category_id_array(x)=existing_category_id_array(x) then
+    -- the line we had was valid, exit loop
+    is_valid_category:=TRUE;
+    exit;
+  end if;
+END LOOP;
+
+if not is_valid_category and records_were_returned
+then
+  if existing_category_id_array(1) is null
+  then
+    insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+      values (prev_catalog_id, max_category_id, prev_product_id);
+    commit_count := commit_count + 1;
+    if generate_invalid_asset_ids = 1
+    then
+      select count(*) into invalidIdCount  from dcs_invalidated_prd_ids where product_id = prev_product_id;
+      if (invalidIdCount =0 )
+      then
+        insert into dcs_invalidated_prd_ids (product_id) values (prev_product_id);
+      end if;
+    end if;
+  else
+    -- update based on max category
+    update dcs_prd_prnt_cats
+    SET category_id = max_category_id
+    WHERE catalog_id = prev_catalog_id
+    AND product_id = prev_product_id;
+    if generate_invalid_asset_ids = 1
+    then
+      select count(*) into invalidIdCount  from dcs_invalidated_prd_ids where product_id = prev_product_id;
+      if (invalidIdCount =0 )
+      then
+        insert into dcs_invalidated_prd_ids (product_id) values (prev_product_id);
+      end if;
+    end if;
+  end if;
+end if;
+commit;
+-- We need to do two things - store the ids of any assets which are no longer needed in the CMS table,
+-- and delete those assets from the table.
+-- So we left outer join the CMS table to the current results from the main CMS query. This means the
+-- CMS table contents will appear whether there was a match in the query results or not. We know that
+-- any time the results are null on the source query side, we can remove that row.
+-- We further join the CMS table to the invalid assets table, this time including all the results in the asset table
+-- whether there was a match or not
+-- We know that if we have decided to delete a row from the CMS table (see above) and there was no entry for that
+-- asset in the invalid assets table, we should add the asset id.
+for i in (select TARGET_TABLE.catalog_id as targetCatalogId, TARGET_TABLE.category_id as targetCategoryId, TARGET_TABLE.product_id as targetProductId,
+                 SOURCE_QUERY.catalog_id as sourceCatalogId, SOURCE_QUERY.category_id as sourceCategoryId, SOURCE_QUERY.product_id as sourceProductId
+                 from (
+(select catalog_id,category_id,product_id from dcs_prd_prnt_cats) TARGET_TABLE
+left outer join
+(select catCatalogs.catalog_id as catalog_id,
+      catChldPrd.category_id as category_id,
+      catChldPrd.child_prd_id as product_id
+  from dcs_cat_chldprd catChldPrd
+  join dcs_cat_catalogs catCatalogs
+  on catChldPrd.category_id = catCatalogs.category_id) SOURCE_QUERY
+on TARGET_TABLE.catalog_id = SOURCE_QUERY.catalog_id and
+   TARGET_TABLE.category_id = SOURCE_QUERY.category_id and
+   TARGET_TABLE.product_id = SOURCE_QUERY.product_id))
+loop
+  if i.sourceProductId is null 
+  then
+    delete from dcs_prd_prnt_cats WHERE product_id=i.targetProductId AND
+                                           catalog_id=i.targetCatalogId AND
+                                           category_id=i.targetCategoryId;
+    if generate_invalid_asset_ids = 1 then
+      merge into dcs_invalidated_prd_ids invalid_id_table
+      using (
+        select i.targetProductId as id_to_insert
+        from dual
+      ) t on (invalid_id_table.product_id = t.id_to_insert) 
+      when not matched then
+      insert (invalid_id_table.product_id)
+      values (t.id_to_insert);
+    end if;
+  end if;
+end loop;
+commit;
+end;
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@include_dynamic_children_num int" />
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@generate_invalid_asset_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+  SET NOCOUNT ON
+  declare @commit_size_local integer = @commit_size
+  declare @prev_product_id varchar(40)
+  declare @prev_catalog_id varchar(40)
+  declare @prev_category_id varchar(40)
+  declare @prev_existing_category_id varchar(40)
+  declare @check_category_id varchar(40)
+  declare @max_category_id varchar(40)
+  declare @is_valid_category bit = 0;
+  declare @records_were_returned bit = 0;
+  declare @commit_count int = 0;
+  declare @catalog_id_array table(catalog_id varchar(40));
+  declare @category_id_array table(category_id varchar(40));
+  declare @product_id_array table(product_id varchar(40));
+  declare @existing_category_id_array table(existing_category_id varchar(40));
+  declare @currentCatalogId varchar(40)
+  declare @currentCategoryId varchar(40)
+  declare @currentProductId varchar(40)
+  declare @currentExistingCategoryId varchar(40);
+  declare @prdPrntCatsCursor cursor;
+  declare @invalidIdCount int;
+  if @include_dynamic_children_num=1
+  begin
+    set @prdPrntCatsCursor=cursor for select a.catalog_id,
+           a.category_id,
+           a.product_id,
+           catValidPrntCategory.category_id as existing_category_id
+    from (
+      (select catCatalogs.catalog_id as catalog_id,
+              catChldPrd.category_id as category_id,
+              catChldPrd.child_prd_id as product_id
+       from dcs_cat_chldprd catChldPrd
+       join dcs_cat_catalogs catCatalogs
+       on catChldPrd.category_id = catCatalogs.category_id
+       union
+       select catCatalogs1.catalog_id, catDynPrd.category_id, catDynPrd.product_id as product_id
+        from dcs_cat_dynprd catDynPrd,
+             dcs_cat_catalogs catCatalogs1
+        where catDynPrd.category_id = catCatalogs1.category_id
+      ) a
+      left outer join dcs_prd_prnt_cats catValidPrntCategory
+      on catValidPrntCategory.catalog_id = a.catalog_id
+      and catValidPrntCategory.product_id = a.product_id)
+      order by a.product_id, a.catalog_id
+  end
+  else
+  begin
+    set @prdPrntCatsCursor = cursor for select a.catalog_id,
+         a.category_id,
+         a.product_id,
+         catValidPrntCategory.category_id as existing_category_id
+     from (
+      (select catCatalogs.catalog_id as catalog_id,
+            catChldPrd.category_id as category_id,
+            catChldPrd.child_prd_id as product_id
+       from dcs_cat_chldprd catChldPrd
+       join dcs_cat_catalogs catCatalogs
+       on catChldPrd.category_id = catCatalogs.category_id
+      ) a
+      left outer join dcs_prd_prnt_cats catValidPrntCategory
+      on catValidPrntCategory.catalog_id = a.catalog_id
+      and catValidPrntCategory.product_id = a.product_id)
+      order by a.product_id, a.catalog_id
+  end
+  BEGIN TRANSACTION
+  open @prdPrntCatsCursor
+  fetch @prdPrntCatsCursor into @currentCatalogId, @currentCategoryId, @currentProductId, @currentExistingCategoryId
+  while @@FETCH_STATUS=0
+  begin
+     if (@prev_product_id is not null) and ((@currentProductId <> @prev_product_id) or (@currentCatalogId <> @prev_catalog_id))
+     begin
+        -- The existing category will be the same across a group of catalog/product. Was there a line
+        -- in the group where 'existing category id' matched 'category id'? If there was then we know
+        -- the existing line is valid. If there wasn't then we'll need to add a row if it was missing
+        -- or update a row if it existed but didn't have an acceptable category.
+        set @is_valid_category = 0
+        declare @matching_category_id varchar(40)
+        select @matching_category_id = max(category_id) from @category_id_array,@existing_category_id_array where category_id=existing_category_id
+        if @matching_category_id is not null
+        begin
+          set @is_valid_category=1
+        end
+
+        -- Did the product/catalog combination exist at all in the target table?
+        -- If it didn't, we add a row. If it did we update the row.
+        if @is_valid_category=0
+        begin
+          declare @existing_category_id_count int;
+          select @existing_category_id_count = count(*) from @existing_category_id_array
+          if @existing_category_id_count=0
+          begin
+            insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+              values (@prev_catalog_id, @max_category_id, @prev_product_id);
+            set @commit_count = @commit_count + 1;
+          end
+          else
+          begin  
+            -- update based on max category
+            update dcs_prd_prnt_cats
+              SET category_id = @max_category_id
+              WHERE catalog_id = @prev_catalog_id
+              AND product_id = @prev_product_id;
+            set @commit_count = @commit_count + 1;
+          end
+          if @generate_invalid_asset_ids = 1
+          begin
+            select @invalidIdCount = count(*) from dcs_invalidated_prd_ids where product_id = @prev_product_id;
+             if (@invalidIdCount =0 )
+             begin
+               insert into dcs_invalidated_prd_ids (product_id) values (@prev_product_id);
+             end
+          end
+        end
+
+        -- clear the arrays, reset max category
+        set @max_category_id = null;
+        delete from @catalog_id_array
+        delete from @category_id_array
+        delete from @product_id_array
+        delete from @existing_category_id_array
+    end
+
+    set @records_were_returned = 1;
+    
+    -- Store the values from the current row.
+    insert into @catalog_id_array values (@currentCatalogId)
+    insert into @category_id_array values (@currentCategoryId)
+    insert into @product_id_array values (@currentProductId)
+
+    if @currentExistingCategoryId is not null
+    begin
+      insert into @existing_category_id_array values (@currentExistingCategoryId)
+    end
+
+    set @prev_catalog_id = @currentCatalogId
+    set @prev_product_id = @currentProductId
+
+    if (@max_category_id is null) or (@currentCategoryId > @max_category_id)
+    begin
+      set @max_category_id = @currentCategoryId
+    end
+
+    if (@commit_count %@commit_size_local)=0
+    begin
+      COMMIT TRANSACTION
+      BEGIN TRANSACTION
+      set @commit_count = 0
+    end
+    fetch @prdPrntCatsCursor into @currentCatalogId, @currentCategoryId, @currentProductId, @currentExistingCategoryId;
+  end
+
+  -- Deal with the final record:
+  -- The existing category will be the same across a group. Was there a line
+  -- in the group where 'existing category' matched 'category'?
+  set @is_valid_category = 0;
+  select @matching_category_id = max(category_id) from @category_id_array,@existing_category_id_array where category_id=existing_category_id
+  if @matching_category_id is not null
+  begin
+    set @is_valid_category=1
+  end
+
+  if (@is_valid_category=0) and (@records_were_returned=1)
+  begin
+    select @existing_category_id_count = count(*) from @existing_category_id_array
+    if (@existing_category_id_count=0)
+    begin
+      insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+        values (@prev_catalog_id, @max_category_id, @prev_product_id);
+    end
+    else
+    begin
+      update dcs_prd_prnt_cats
+        SET category_id = @max_category_id
+        WHERE catalog_id = @prev_catalog_id
+        AND product_id = @prev_product_id
+    end
+    if @generate_invalid_asset_ids = 1
+    begin
+      select @invalidIdCount = count(*) from dcs_invalidated_prd_ids where product_id = @prev_product_id;
+      if (@invalidIdCount =0 )
+      begin
+        insert into dcs_invalidated_prd_ids (product_id) values (@prev_product_id);
+      end
+    end
+  end
+  COMMIT TRANSACTION
+  BEGIN TRANSACTION
+-- We need to do two more things - store the ids of any assets which are no longer needed in the CMS table,
+-- and delete those assets from the table.
+-- So we left outer join the CMS table to the current results from the main CMS query. This means the
+-- CMS table contents will appear whether there was a match in the query results or not. We know that
+-- any time the results are null on the source query side, we can remove that row.
+-- We further join the CMS table to the invalid assets table, this time including all the results in the asset table
+-- whether there was a match or not
+-- We know that if we have decided to delete a row from the CMS table (see above) and there was no entry for that
+-- asset in the invalid assets table, we should add the asset id.
+declare @targetCatalogId varchar(40)
+declare @targetCategoryId varchar(40)
+declare @targetProductId varchar(40)
+declare @sourceCatalogId varchar(40)
+declare @sourceCategoryId varchar(40)
+declare @sourceProductId varchar(40)
+declare @assetId varchar(40)
+
+declare @removeAssetsCursor cursor
+set @removeassetscursor = cursor for (select target_table.catalog_id as targetcatalogid, target_table.category_id as targetcategoryid, target_table.product_id as targetproductid,
+                 source_query.catalog_id as sourcecatalogid, source_query.category_id as sourcecategoryid, source_query.product_id as sourceproductid
+                 from (
+(select catalog_id,category_id,product_id from dcs_prd_prnt_cats) target_table
+left outer join
+(select catcatalogs.catalog_id as catalog_id,
+      catchldprd.category_id as category_id,
+      catchldprd.child_prd_id as product_id
+  from dcs_cat_chldprd catchldprd
+  join dcs_cat_catalogs catcatalogs
+  on catchldprd.category_id = catcatalogs.category_id) source_query
+on target_table.catalog_id = source_query.catalog_id and
+   target_table.category_id = source_query.category_id and
+   target_table.product_id = source_query.product_id))
+open @removeassetscursor
+fetch @removeassetscursor into @targetcatalogid, @targetcategoryid, @targetproductid, @sourcecatalogid, @sourcecategoryid, @sourceproductid
+while @@fetch_status=0
+begin
+  if @sourceproductid is null
+  begin
+    delete from dcs_prd_prnt_cats where product_id=@targetproductid and
+                                           catalog_id=@targetcatalogid and
+                                           category_id=@targetcategoryid;
+
+    if @generate_invalid_asset_ids =1 
+	begin
+	  insert into dcs_invalidated_prd_ids (product_id) select @targetproductid where not exists 
+	              (select product_id from dcs_invalidated_prd_ids where product_id = @targetProductId)
+	end
+  end
+  
+  fetch @removeassetscursor into @targetcatalogid, @targetcategoryid, @targetproductid, @sourcecatalogid, @sourcecategoryid, @sourceproductid
+end;
+
+
+  COMMIT TRANSACTION
+close @prdPrntCatsCursor
+deallocate @prdPrntCatsCursor
+close @removeAssetsCursor
+deallocate @removeAssetsCursor
+end 
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="db2">
+      <proc-params>
+        <proc-param spec="v_include_dynamic_children_num integer" />
+        <proc-param spec="v_cmt_size integer" />
+        <proc-param spec="v_generate_invalid_asset_ids integer" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+  declare v_prev_product_id varchar(40);
+  declare v_prev_catalog_id varchar(40);
+  declare v_prev_category_id varchar(40);
+  declare v_prev_existing_category_id varchar(40);
+  declare v_check_category_id varchar(40);
+  declare v_max_category_id varchar(40);
+  declare v_is_valid_category boolean default false;
+  declare v_records_were_returned boolean default false;
+  declare v_cmt_count integer default 0;
+  declare SQLCODE integer default 0;
+  declare v_matching_category_id varchar(40);  
+  declare v_existing_category_id_count integer default 0;
+  declare v_currentCatalogId varchar(40);
+  declare v_currentCategoryId varchar(40);
+  declare v_currentProductId varchar(40);
+  declare v_currentExistingCategoryId varchar(40);
+  declare v_prdPrntCatsCursor cursor;
+  declare v_invalidIdCount integer default 0;
+  declare v_targetCatalogId varchar(40);  
+  declare v_targetCategoryId varchar(40);
+  declare v_targetProductId varchar(40);
+  declare v_sourceCatalogId varchar(40);
+  declare v_sourceCategoryId varchar(40);
+  declare v_sourceProductId varchar(40);
+  declare v_assetId varchar(40);
+  declare v_removeAssetsCursor cursor;
+  declare v_catalog_id_array SimpleStringArray;
+  declare v_category_id_array SimpleStringArray;
+  declare v_product_id_array SimpleStringArray;
+  declare v_existing_category_id_array SimpleStringArray;
+  declare v_cardinalityCount integer default 0;
+  declare v_mainSelect varchar(2000);
+  if v_include_dynamic_children_num=1
+  then
+    set v_mainSelect = 'select a.catalog_id,
+           a.category_id,
+           a.product_id,
+           catValidPrntCategory.category_id as existing_category_id
+    from (
+      (select catCatalogs.catalog_id as catalog_id,
+              catChldPrd.category_id as category_id,
+              catChldPrd.child_prd_id as product_id
+       from dcs_cat_chldprd catChldPrd
+       join dcs_cat_catalogs catCatalogs
+       on catChldPrd.category_id = catCatalogs.category_id
+       union
+       select catCatalogs1.catalog_id, catDynPrd.category_id, catDynPrd.product_id as product_id
+        from dcs_cat_dynprd catDynPrd,
+             dcs_cat_catalogs catCatalogs1
+        where catDynPrd.category_id = catCatalogs1.category_id
+      ) a
+      left outer join dcs_prd_prnt_cats catValidPrntCategory
+      on catValidPrntCategory.catalog_id = a.catalog_id
+      and catValidPrntCategory.product_id = a.product_id)
+      order by a.product_id, a.catalog_id';
+  else
+    set v_mainSelect = 'select a.catalog_id,
+         a.category_id,
+         a.product_id,
+         catValidPrntCategory.category_id as existing_category_id
+     from (
+      (select catCatalogs.catalog_id as catalog_id,
+            catChldPrd.category_id as category_id,
+            catChldPrd.child_prd_id as product_id
+       from dcs_cat_chldprd catChldPrd
+       join dcs_cat_catalogs catCatalogs
+       on catChldPrd.category_id = catCatalogs.category_id
+      ) a
+      left outer join dcs_prd_prnt_cats catValidPrntCategory
+      on catValidPrntCategory.catalog_id = a.catalog_id
+      and catValidPrntCategory.product_id = a.product_id)
+      order by a.product_id, a.catalog_id';
+  end if;
+  prepare s1 from v_mainSelect;
+  set v_prdPrntCatsCursor = cursor with hold for s1;
+  open v_prdPrntCatsCursor;
+  fetch v_prdPrntCatsCursor into v_currentCatalogId, v_currentCategoryId, v_currentProductId, v_currentExistingCategoryId;
+  while SQLCODE=0
+  do
+    if (v_prev_product_id is not null) and ((v_currentProductId <> v_prev_product_id) or (v_currentCatalogId <> v_prev_catalog_id))
+    then
+      -- The existing category will be the same across a group of catalog/product. Was there a line
+      -- in the group where 'existing category id' matched 'category id'? If there was then we know
+      -- the existing line is valid. If there wasn't then we'll need to add a row if it was missing
+      -- or update a row if it existed but didn't have an acceptable category.
+      set v_is_valid_category = false;        
+      set (v_matching_category_id) = (select max(a.category_id) from UNNEST(v_category_id_array,v_existing_category_id_array) as A(category_id,existing_category_id) where A.category_id=A.existing_category_id);
+      -- Did the product/catalog combination exist at all in the target table?
+      -- If it didn't, we add a row. If it did we update the row.
+      if v_matching_category_id is null
+      then
+        set (v_existing_category_id_count) = (select count(*) from UNNEST(v_existing_category_id_array) as A(existing_category_id) where A.existing_category_id is not null);
+        if v_existing_category_id_count=0
+        then
+         insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+            values (v_prev_catalog_id, v_max_category_id, v_prev_product_id);
+          set v_cmt_count = v_cmt_count + 1;
+        else
+          --update based on max category
+          update dcs_prd_prnt_cats
+            SET category_id = v_max_category_id
+            WHERE catalog_id = v_prev_catalog_id
+            AND product_id = v_prev_product_id;
+          set v_cmt_count = v_cmt_count + 1;
+        end if;
+        if v_generate_invalid_asset_ids = 1
+        then
+          set (v_invalidIdCount) = (select count(*) from dcs_invalidated_prd_ids where product_id = v_prev_product_id);
+          if (v_invalidIdCount = 0)
+          then
+            insert into dcs_invalidated_prd_ids (product_id) values (v_prev_product_id);
+          end if;
+        end if;
+      end if;
+      -- clear the arrays, reset max category
+      set v_max_category_id = null;
+      set v_catalog_id_array = ARRAY_DELETE(v_catalog_id_array);
+      set v_category_id_array = ARRAY_DELETE(v_category_id_array);
+      set v_product_id_array = ARRAY_DELETE(v_product_id_array);
+      set v_existing_category_id_array = ARRAY_DELETE(v_existing_category_id_array);
+    end if;
+    set v_records_were_returned = true;
+    -- Store the values from the current row.
+    set v_cardinalityCount = CARDINALITY(v_existing_category_id_array);
+    if (v_cardinalityCount is null)
+    then 
+      set v_cardinalityCount = 0;
+    end if;
+    set v_existing_category_id_array[v_cardinalityCount+1]=v_currentExistingCategoryId;    
+    set v_cardinalityCount = CARDINALITY(v_catalog_id_array);
+    if (v_cardinalityCount is null)
+    then
+       set v_cardinalityCount = 0;
+    end if;    
+    set v_catalog_id_array[v_cardinalityCount+1]=v_currentCatalogId;
+    set v_cardinalityCount = CARDINALITY(v_category_id_array);
+    if (v_cardinalityCount is null)
+    then
+       set v_cardinalityCount = 0;
+    end if;    
+    set v_category_id_array[v_cardinalityCount+1]=v_currentCategoryId;
+    set v_cardinalityCount = CARDINALITY(v_product_id_array);
+    if (v_cardinalityCount is null)
+    then
+      set v_cardinalityCount = 0;
+    end if;    
+    set v_product_id_array[v_cardinalityCount+1]=v_currentProductId;   
+    set v_prev_catalog_id = v_currentCatalogId;
+    set v_prev_product_id = v_currentProductId;
+    if (v_max_category_id is null) or (v_currentCategoryId > v_max_category_id)
+    then
+      set v_max_category_id = v_currentCategoryId;
+    end if;
+    if (v_cmt_count >= v_cmt_size)
+    then
+      COMMIT;    
+      set v_cmt_count = 0;
+    end if;    
+    fetch v_prdPrntCatsCursor into v_currentCatalogId, v_currentCategoryId, v_currentProductId, v_currentExistingCategoryId;        
+  end while;
+  -- Deal with the final record:
+  -- The existing category will be the same across a group. Was there a line
+  -- in the group where 'existing category' matched 'category'?
+  set (v_matching_category_id) = (select max(A.category_id) from UNNEST(v_category_id_array,v_existing_category_id_array) as A(category_id,existing_category_id) where A.category_id=A.existing_category_id);
+  if (v_matching_category_id is null) and (v_records_were_returned=true)
+  then    
+    set (v_existing_category_id_count) = (select count(*) from UNNEST(v_existing_category_id_array) as A(category_id) where A.category_id is not null);
+    if (v_existing_category_id_count=0)
+    then      
+      insert into dcs_prd_prnt_cats (catalog_id, category_id, product_id)
+        values (v_prev_catalog_id, v_max_category_id, v_prev_product_id);    
+    else
+      update dcs_prd_prnt_cats
+        SET category_id = v_max_category_id
+        WHERE catalog_id = v_prev_catalog_id
+        AND product_id = v_prev_product_id;
+    end if;
+    if v_generate_invalid_asset_ids = 1
+    then
+      set v_invalidIdCount = (select count(*) from dcs_invalidated_prd_ids where product_id = v_prev_product_id);
+      if (v_invalidIdCount = 0)
+      then
+        insert into dcs_invalidated_prd_ids (product_id) values (v_prev_product_id);
+      end if;
+    end if;
+  end if;
+  COMMIT;
+  -- We need to do two more things - store the ids of any assets which are no longer needed in the CMS table,
+  -- and delete those assets from the table.
+  -- So we left outer join the CMS table to the current results from the main CMS query. This means the
+  -- CMS table contents will appear whether there was a match in the query results or not. We know that
+  -- any time the results are null on the source query side, we can remove that row.
+  -- We further join the CMS table to the invalid assets table, this time including all the results in the asset table
+  -- whether there was a match or not
+  -- We know that if we have decided to delete a row from the CMS table (see above) and there was no entry for that
+  -- asset in the invalid assets table, we should add the asset id.
+  set v_removeAssetsCursor = cursor with hold for (select TARGET_TABLE.catalog_id as targetCatalogId, TARGET_TABLE.category_id as targetCategoryId, TARGET_TABLE.product_id as targetProductId,
+               SOURCE_QUERY.catalog_id as sourceCatalogId, SOURCE_QUERY.category_id as sourceCategoryId, SOURCE_QUERY.product_id as sourceProductId
+               from (
+  (select catalog_id,category_id,product_id from dcs_prd_prnt_cats) TARGET_TABLE
+  left outer join
+  (select catCatalogs.catalog_id as catalog_id,
+    catChldPrd.category_id as category_id,
+    catChldPrd.child_prd_id as product_id
+  from dcs_cat_chldprd catChldPrd
+  join dcs_cat_catalogs catCatalogs
+  on catChldPrd.category_id = catCatalogs.category_id) SOURCE_QUERY
+  on TARGET_TABLE.catalog_id = SOURCE_QUERY.catalog_id and
+     TARGET_TABLE.category_id = SOURCE_QUERY.category_id and
+     TARGET_TABLE.product_id = SOURCE_QUERY.product_id));
+  open v_removeAssetsCursor;
+  fetch v_removeAssetsCursor into v_targetCatalogId, v_targetCategoryId, v_targetProductId, v_sourceCatalogId, v_sourceCategoryId, v_sourceProductId;
+  while SQLCODE=0
+  do
+    if v_sourceProductId is null 
+    then
+      delete from dcs_prd_prnt_cats WHERE product_id=v_targetProductId AND
+                                          catalog_id=v_targetCatalogId AND
+                                          category_id=v_targetCategoryId;
+      if v_generate_invalid_asset_ids = 1
+      then
+        merge into dcs_invalidated_prd_ids invalid_id_table
+        using (
+          select v_targetProductId as id_to_insert
+          from SYSIBM.SYSDUMMY1
+        ) t on (invalid_id_table.product_id = t.id_to_insert) 
+        when not matched then
+        insert (invalid_id_table.product_id)
+        values (t.id_to_insert);
+      end if;
+    end if;
+    fetch v_removeAssetsCursor into v_targetCatalogId, v_targetCategoryId, v_targetProductId, v_sourceCatalogId, v_sourceCategoryId, v_sourceProductId;
+  end while;
+  COMMIT;
+end
+]]>
+      </proc-body>
+    </proc-db>
+  </procedure>
+  <procedure name="pr_dcs_prd_anc_cats" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="include_dynamic_children_num IN number" />
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="gen_invalid_cache_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+curr_product_id varchar2(40);
+prev_product_id varchar2(40) := '%%FIRST LOOP%%';
+currentCategoryId varchar2(40);
+currentProductId varchar2(40);
+sequence_no number := 0;
+commit_count number := 0;
+mainSelect varchar(2000);
+TYPE t_ref_cursor IS REF CURSOR;
+myCursor t_ref_cursor;
+genInvalidCacheIdsQuery varchar(2500);
+begin
+  if (include_dynamic_children_num=1)
+  then
+    mainSelect:='select distinct category_id, product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+    from dcs_cat_anc_cats  catAncCats, 
+         dcs_cat_chldprd   catChldPrd1 
+    where catAncCats.category_id = catChldPrd1.category_id 
+  union 
+  select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+  from dcs_cat_chldprd catChldPrd2
+  union
+  select catAncCats1.anc_category_id as category_id, 0 as sequence_num, catDynPrd.product_id as product_id
+  from dcs_cat_anc_cats  catAncCats1, 
+       dcs_cat_dynprd   catDynPrd 
+  where catAncCats1.category_id = catDynPrd.category_id
+  union 
+  select catDynPrd1.category_id as category_id, 0 as sequence_num, catDynPrd1.product_id as product_id
+  from dcs_cat_dynprd catDynPrd1)';
+  else
+    mainSelect:='select distinct category_id, product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+    from dcs_cat_anc_cats  catAncCats, 
+         dcs_cat_chldprd   catChldPrd1 
+    where catAncCats.category_id = catChldPrd1.category_id 
+    union 
+    select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+    from dcs_cat_chldprd catChldPrd2)';
+  end if;
+
+  if (gen_invalid_cache_ids = 1)
+  then
+    genInvalidCacheIdsQuery:='insert into dcs_invalidated_prd_ids (product_id) select distinct product_id from (
+(((' || mainSelect || ')) minus
+(select category_id,product_id from dcs_prd_anc_cats))
+union
+((select category_id, product_id from dcs_prd_anc_cats)
+minus
+(' || mainSelect || '))
+) where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+   execute immediate genInvalidCacheIdsQuery;
+  end if;
+
+execute immediate 'truncate table dcs_prd_anc_cats';
+
+-- Ordering wasn't useful in computing invalid cache assets but it is required when considered with sequencing
+-- so add in an order by clause
+mainSelect := mainSelect || ' order by product_id asc';
+
+open myCursor for mainSelect;
+loop
+  fetch myCursor into currentCategoryId, currentProductId;
+  EXIT WHEN myCursor%NOTFOUND;
+
+  curr_product_id := currentProductId;
+  if curr_product_id <> prev_product_id then
+    sequence_no := 0;
+  else
+    sequence_no := sequence_no + 1;
+  end if;
+
+  insert into dcs_prd_anc_cats (category_id, sequence_num, product_id)
+    values (currentCategoryId, sequence_no, currentProductId);
+  commit;
+  if commit_count >= commit_size then
+    COMMIT;
+    commit_count := 0;
+  else
+    commit_count := commit_count + 1;
+  end if;
+  prev_product_id := curr_product_id;
+end loop;
+COMMIT;
+end;
+   ]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@include_dynamic_children_num int" />
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@gen_invalid_cache_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN  
+  SET NOCOUNT ON
+  declare @commit_size_local integer = @commit_size
+  declare @curr_product_id varchar(40)
+  declare @prev_product_id varchar(40) = '%%FIRST LOOP%%'
+  declare @currentCategoryId varchar(40)
+  declare @currentProductId varchar(40)
+  declare @sequence_no int = 0
+  declare @commit_count int= 0
+  declare @mainSelect varchar(2000)
+  declare @genInvalidCacheIdsQuery varchar(2500);
+
+  if @include_dynamic_children_num=1
+  begin
+    set @mainSelect = 'select distinct subQuery.category_id, subQuery.product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+        from dcs_cat_anc_cats  catAncCats, 
+        dcs_cat_chldprd   catChldPrd1 
+        where catAncCats.category_id = catChldPrd1.category_id 
+        union 
+        select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+        from dcs_cat_chldprd catChldPrd2
+        union
+        select catAncCats1.anc_category_id as category_id, 0 as sequence_num, catDynPrd.product_id as product_id
+        from dcs_cat_anc_cats  catAncCats1, 
+        dcs_cat_dynprd   catDynPrd 
+        where catAncCats1.category_id = catDynPrd.category_id
+        union 
+        select catDynPrd1.category_id as category_id, 0 as sequence_num, catDynPrd1.product_id as product_id
+        from dcs_cat_dynprd catDynPrd1) subQuery'
+  end
+  else
+  begin
+    set @mainSelect = 'select distinct subQuery.category_id, subQuery.product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+        from dcs_cat_anc_cats  catAncCats, 
+        dcs_cat_chldprd   catChldPrd1 
+        where catAncCats.category_id = catChldPrd1.category_id 
+        union 
+        select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+        from dcs_cat_chldprd catChldPrd2) subQuery'
+  end
+
+    if (@gen_invalid_cache_ids = 1)
+    begin
+      set @genInvalidCacheIdsQuery = 'insert into dcs_invalidated_prd_ids (product_id) select distinct product_id from (
+(((' + @mainSelect + ')) except
+(select category_id,product_id from dcs_prd_anc_cats))
+union
+((select category_id, product_id from dcs_prd_anc_cats)
+except
+(' + @mainSelect + '))
+) invalid where product_id not in (select product_id from dcs_invalidated_prd_ids)'     
+     exec(@genInvalidCacheIdsQuery);
+    end
+
+  truncate table dcs_prd_anc_cats
+
+  -- Ordering wasn't useful in computing invalid cache assets but it is required when considered with sequencing
+  -- so add in an order by clause
+  set @mainSelect = @mainSelect + ' order by product_id asc'
+
+  declare @cursorStatement nvarchar(2000)
+  set @cursorStatement = 'declare prdAncCatsCursor cursor for '+@mainSelect
+  exec sp_executesql @cursorStatement
+
+  open prdAncCatsCursor
+  fetch next from prdAncCatsCursor into @currentCategoryId, @currentProductId
+  begin transaction -- begin transaction here
+  while @@FETCH_STATUS = 0
+  begin
+    set @curr_product_id = @currentProductId;
+    if @curr_product_id <> @prev_product_id
+    begin
+      set @sequence_no = 0
+    end
+    else 
+    begin
+      set @sequence_no = @sequence_no + 1
+    end
+
+    insert into dcs_prd_anc_cats (category_id, sequence_num, product_id)
+      values (@currentCategoryId, @sequence_no, @currentProductId);
+
+    if @commit_count >= @commit_size_local
+    begin
+      COMMIT TRANSACTION
+      BEGIN TRANSACTION
+      set @commit_count = 0
+    end
+    else
+    begin
+      set @commit_count = @commit_count + 1
+    end
+    set @prev_product_id = @curr_product_id
+    fetch next from prdAncCatsCursor into @currentCategoryId, @currentProductId
+  end
+  COMMIT TRANSACTION
+  close prdAncCatsCursor
+  deallocate prdAncCatsCursor
+end
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="db2">
+      <proc-params>
+        <proc-param spec="v_include_dynamic_children_num integer" />
+        <proc-param spec="v_cmt_size integer" />
+        <proc-param spec="v_gen_invalid_cache_ids integer" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN  
+  declare v_curr_product_id varchar(40);
+  declare v_prev_product_id varchar(40) default '%%FIRST LOOP%%';
+  declare v_currentCategoryId varchar(40);
+  declare v_currentProductId varchar(40);
+  declare v_sequence_no integer default 0;
+  declare v_cmt_count integer default 0;
+  declare v_mainSelect varchar(2000);
+  declare v_genInvalidCacheIdsQuery varchar(2500);
+  declare v_prdAncCatsCursor cursor;
+  declare SQLCODE integer default 0;
+  if v_include_dynamic_children_num=1
+  then
+    set v_mainSelect = 'select distinct subQuery.category_id, subQuery.product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+        from dcs_cat_anc_cats  catAncCats, 
+        dcs_cat_chldprd   catChldPrd1 
+        where catAncCats.category_id = catChldPrd1.category_id 
+        union 
+        select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+        from dcs_cat_chldprd catChldPrd2
+        union
+        select catAncCats1.anc_category_id as category_id, 0 as sequence_num, catDynPrd.product_id as product_id
+        from dcs_cat_anc_cats  catAncCats1, 
+        dcs_cat_dynprd   catDynPrd 
+        where catAncCats1.category_id = catDynPrd.category_id
+        union 
+        select catDynPrd1.category_id as category_id, 0 as sequence_num, catDynPrd1.product_id as product_id
+        from dcs_cat_dynprd catDynPrd1) subQuery';
+  else
+    set v_mainSelect = 'select distinct subQuery.category_id, subQuery.product_id from (select catAncCats.anc_category_id as category_id, 0 as sequence_num, catChldPrd1.child_prd_id as product_id
+        from dcs_cat_anc_cats  catAncCats, 
+        dcs_cat_chldprd   catChldPrd1 
+        where catAncCats.category_id = catChldPrd1.category_id 
+        union 
+        select catChldPrd2.category_id as category_id, 0 as sequence_num, catChldPrd2.child_prd_id as product_id
+        from dcs_cat_chldprd catChldPrd2) subQuery';
+  end if;
+    if (v_gen_invalid_cache_ids = 1)
+    then
+      set v_genInvalidCacheIdsQuery = 'insert into dcs_invalidated_prd_ids (product_id) select distinct product_id from (
+(((' || V_mainSelect ||' except
+(select category_id,product_id from dcs_prd_anc_cats))
+union
+((select category_id, product_id from dcs_prd_anc_cats)
+except
+(' || v_mainSelect || '))))
+) invalid where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+       prepare s1 from v_genInvalidCacheIdsQuery;
+       execute s1;
+    end if;
+  COMMIT;  
+  truncate table dcs_prd_anc_cats immediate;
+  -- Ordering wasn't useful in computing invalid cache assets but it is required when considered with sequencing
+  -- so add in an order by clause
+  set v_mainSelect = v_mainSelect || ' order by product_id asc'; 
+  prepare s2 from v_mainSelect;
+  set v_prdAncCatsCursor = cursor with hold for s2;
+  open v_prdAncCatsCursor;
+  fetch v_prdAncCatsCursor into v_currentCategoryId, v_currentProductId;
+  while (SQLCODE = 0)
+  do
+    set v_curr_product_id = v_currentProductId;
+    if v_curr_product_id <> v_prev_product_id
+    then
+      set v_sequence_no = 0;
+    else 
+      set v_sequence_no = v_sequence_no + 1;
+    end if;
+    insert into dcs_prd_anc_cats (category_id, sequence_num, product_id)
+      values (v_currentCategoryId, v_sequence_no, v_currentProductId);
+    if v_cmt_count >= v_cmt_size
+    then
+      COMMIT;
+      set v_cmt_count = 0;    
+    else
+      set v_cmt_count = v_cmt_count + 1;
+    end if;
+    set v_prev_product_id = v_curr_product_id;
+    fetch v_prdAncCatsCursor into v_currentCategoryId, v_currentProductId;
+  end while;
+  COMMIT;
+end
+]]>
+      </proc-body>
+    </proc-db>
+  </procedure>
+  <procedure name="pr_dcs_product_sites" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="include_dynamic_children_num IN number" />
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="generate_invalid_asset_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+commit_count number := 0;
+mainSelect varchar2(2000);
+currentProductId varchar2(40);
+currentSiteId varchar2(40);
+TYPE t_ref_cursor IS REF CURSOR;
+myCursor  t_ref_cursor;
+genInvalidAssetIdsQuery varchar2(2500);
+begin
+  -- 1 is considered to be true, any other number is considered to be false
+  if (include_dynamic_children_num=1)
+  then
+    mainSelect := 'select product_id, site_id from
+    (select catprd.child_prd_id  product_id,
+      catsites.site_id site_id
+    from dcs_cat_chldprd catprd,
+      dcs_category_sites catsites
+    where  catprd.category_id = catsites.category_id)
+    union
+    (select dynprd.product_id product_id,
+       catsites1.site_id site_id
+    from  dcs_cat_dynprd dynprd,
+          dcs_category_sites catsites1
+    where dynprd.category_id = catsites1.category_id)';
+  else
+    mainSelect := 'select distinct product_id, site_id from (select catprd.child_prd_id product_id,
+      catsites.site_id site_id
+    from dcs_cat_chldprd catprd,
+         dcs_category_sites catsites
+    where catprd.category_id = catsites.category_id)';
+  end if;
+
+  if (generate_invalid_asset_ids = 1)
+  then
+    genInvalidAssetIdsQuery := 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' || mainSelect || ')
+minus
+select product_id,site_id from dcs_product_sites)
+UNION
+(select product_id,site_id from dcs_product_sites
+minus
+' || mainSelect || ')
+) where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+  execute immediate genInvalidAssetIdsQuery;
+  end if;
+
+  execute immediate 'truncate table dcs_product_sites';
+
+  open myCursor for mainSelect;
+  loop
+    fetch myCursor into currentProductId, currentSiteId;
+    EXIT WHEN myCursor%NOTFOUND;
+
+    insert into dcs_product_sites (product_id,site_id) values (currentProductId, currentSiteId);
+    if commit_count >= commit_size
+    then
+      COMMIT;
+      commit_count := 0;
+    else
+      commit_count := commit_count + 1;
+      end if;
+  end loop;
+  COMMIT;
+end;
+  ]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@include_dynamic_children_num int" />
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@generate_invalid_cache_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN  
+SET NOCOUNT ON
+declare @commit_size_local integer = @commit_size
+declare @commit_count int=0
+declare @currentProductId varchar(40)
+declare @currentSiteId varchar(40)
+declare @mainSelect varchar(2000)
+declare @genInvalidAssetIdsQuery varchar(2000)
+
+
+if @include_dynamic_children_num=1
+begin
+  set @mainSelect = 'select subQuery.product_id, subQuery.site_id from
+  (select catprd.child_prd_id  product_id,
+      catsites.site_id site_id
+  from dcs_cat_chldprd catprd,
+       dcs_category_sites catsites
+   where  catprd.category_id = catsites.category_id
+  union
+  select dynprd.product_id product_id,
+         catsites1.site_id site_id
+  from dcs_cat_dynprd dynprd,
+       dcs_category_sites catsites1
+  where dynprd.category_id = catsites1.category_id) subQuery'
+end
+else
+begin
+  set @mainSelect = 'select distinct subQuery.product_id, subQuery.site_id from (select catprd.child_prd_id product_id,
+        catsites.site_id site_id
+    from dcs_cat_chldprd catprd,
+         dcs_category_sites catsites
+    where catprd.category_id = catsites.category_id) subQuery'
+end
+
+  if (@generate_invalid_cache_ids = 1)
+  begin
+    set @genInvalidAssetIdsQuery = 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' + @mainSelect + ')
+except
+select product_id,site_id from dcs_product_sites)
+UNION
+(select product_id,site_id from dcs_product_sites
+except
+' + @mainSelect + ')
+) invalids where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+  exec(@genInvalidAssetIdsQuery);
+  end;
+
+
+  BEGIN TRANSACTION
+
+truncate table dcs_product_sites
+
+declare @cursorStatement nvarchar(2000)
+set @cursorStatement = 'declare prdSitesCursor cursor for ' + @mainSelect
+exec sp_executesql @cursorStatement
+
+open prdSitesCursor;
+fetch prdSitesCursor into @currentProductId, @currentSiteId
+
+while @@FETCH_STATUS=0
+begin        
+  insert into dcs_product_sites (product_id,site_id) values (@currentProductId, @currentSiteId);
+  if @commit_count >= @commit_size_local
+  begin
+    COMMIT TRANSACTION;
+    BEGIN TRANSACTION
+    set @commit_count = 0;
+  end
+  else
+  begin
+    set @commit_count = @commit_count + 1
+  end
+  fetch prdSitesCursor into @currentProductId, @currentSiteId
+end
+   COMMIT TRANSACTION;  
+close prdSitesCursor
+deallocate prdSitesCursor
+END
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db='db2'>
+      <proc-params>
+        <proc-param spec="v_include_dynamic_children_num integer" />
+        <proc-param spec="v_cmt_size integer" />
+        <proc-param spec="v_generate_invalid_asset_ids integer" />
+      </proc-params>   
+    <proc-body>
+      <![CDATA[
+BEGIN
+declare SQLCODE integer default 0;
+declare v_cmt_count integer default  0;
+declare v_currentProductId varchar(40);
+declare v_currentSiteId varchar(40);
+declare v_mainSelect varchar(2000);
+declare v_genInvalidAssetIdsQuery varchar(2000);
+declare v_prdSitesCursor cursor;
+-- 1 is considered to be true, any other number is considered to be false
+if v_include_dynamic_children_num=1
+then
+  set v_mainSelect = 'select subQuery.product_id, subQuery.site_id from
+  (select catprd.child_prd_id  product_id,
+      catsites.site_id site_id
+  from dcs_cat_chldprd catprd,
+       dcs_category_sites catsites
+   where  catprd.category_id = catsites.category_id
+  union
+  select dynprd.product_id product_id,
+         catsites1.site_id site_id
+  from dcs_cat_dynprd dynprd,
+       dcs_category_sites catsites1
+  where dynprd.category_id = catsites1.category_id) subQuery';
+else
+  set v_mainSelect = 'select distinct subQuery.product_id, subQuery.site_id from (select catprd.child_prd_id product_id,
+        catsites.site_id site_id
+    from dcs_cat_chldprd catprd,
+         dcs_category_sites catsites
+    where catprd.category_id = catsites.category_id) subQuery';
+end if;
+if (v_generate_invalid_asset_ids = 1)
+then
+    set v_genInvalidAssetIdsQuery = 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' || v_mainSelect || ')
+except
+select product_id,site_id from dcs_product_sites)
+UNION
+(select product_id,site_id from dcs_product_sites
+except
+' || v_mainSelect || ')
+) invalids where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+  prepare s1 from v_genInvalidAssetIdsQuery;
+  execute s1;
+end if;
+  COMMIT;
+  truncate table dcs_product_sites immediate;
+  prepare s2 from v_mainSelect;
+  set v_prdSitesCursor = cursor with hold for s2;
+  open v_prdSitesCursor;
+  fetch v_prdSitesCursor into v_currentProductId, v_currentSiteId;
+  while (SQLCODE=0)
+  do
+   insert into dcs_product_sites (product_id,site_id) values (v_currentProductId, v_currentSiteId);
+   if v_cmt_count >= v_cmt_size
+   then
+    COMMIT;
+    set v_cmt_count = 0;
+   else
+    set v_cmt_count = v_cmt_count + 1;
+   end if;
+   fetch v_prdSitesCursor into v_currentProductId, v_currentSiteId;
+   end while;
+   COMMIT;
+END
+]]>
+      </proc-body> 
+    </proc-db>    
+
+  </procedure>
+  <procedure name="pr_dcs_prd_catalogs" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="include_dynamic_children_num IN number" />
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="generate_invalid_cache_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+commit_count number := 0;
+currentProductId varchar(40);
+currentCatalogId varchar(40);
+mainSelect varchar(2000);
+TYPE t_ref_cursor IS REF CURSOR;
+myCursor  t_ref_cursor;
+genInvalidCacheIdsQuery varchar(2000);
+begin
+  if (include_dynamic_children_num=1)
+  then
+    mainSelect := 'select catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+      from dcs_cat_catalogs catCatalogs, 
+           dcs_cat_chldprd catChldPrd 
+      where catCatalogs.category_id = catChldPrd.category_id
+      union
+      select catDynPrd.product_id as product_id, catCatalogs1.catalog_id
+      from dcs_cat_catalogs catCatalogs1, 
+           dcs_cat_dynprd catDynPrd 
+      where catCatalogs1.category_id = catDynPrd.category_id';
+  else
+    mainSelect := 'select distinct catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+      from dcs_cat_catalogs catCatalogs, 
+           dcs_cat_chldprd catChldPrd 
+      where catCatalogs.category_id = catChldPrd.category_id';
+  end if;
+
+  if (generate_invalid_cache_ids = 1)
+  then
+    genInvalidCacheIdsQuery := 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' || mainSelect || ')
+minus
+(select product_id, catalog_id from dcs_prd_catalogs))
+union
+((select product_id, catalog_id from dcs_prd_catalogs)
+minus
+(' || mainSelect || '))
+) where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+   execute immediate genInvalidCacheIdsQuery;
+  end if;
+
+  execute immediate 'truncate table dcs_prd_catalogs';
+
+  open myCursor for mainSelect;
+  loop
+    fetch myCursor into currentProductId, currentCatalogId;
+    EXIT WHEN myCursor%NOTFOUND;
+
+    insert into dcs_prd_catalogs (product_id,catalog_id) values (currentProductId, currentCatalogId);
+    if commit_count >= commit_size then
+      COMMIT;
+      commit_count := 0;
+    else
+      commit_count := commit_count + 1;
+    end if;
+  end loop;
+commit;
+end;
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@include_dynamic_children_num int" />
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@generate_invalid_asset_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+SET NOCOUNT ON
+declare @commit_size_local integer = @commit_size
+declare @commit_count int = 0
+declare @currentProductId varchar(40)
+declare @currentCatalogId varchar(40)
+declare @mainSelect varchar(2000)
+declare @genInvalidCacheIdsQuery varchar(2000)
+
+if @include_dynamic_children_num=1
+begin
+  set @mainSelect = 'select catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+from dcs_cat_catalogs catCatalogs, 
+         dcs_cat_chldprd catChldPrd 
+    where catCatalogs.category_id = catChldPrd.category_id
+    union
+    select catDynPrd.product_id as product_id, catCatalogs1.catalog_id
+from dcs_cat_catalogs catCatalogs1, 
+           dcs_cat_dynprd catDynPrd 
+      where catCatalogs1.category_id = catDynPrd.category_id'
+end
+else
+begin
+  set @mainSelect = 'select distinct catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+from dcs_cat_catalogs catCatalogs, 
+         dcs_cat_chldprd catChldPrd 
+    where catCatalogs.category_id = catChldPrd.category_id'
+end;
+
+if (@generate_invalid_asset_ids = 1)
+begin
+  set @genInvalidCacheIdsQuery = 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' + @mainSelect + ')
+except
+(select product_id, catalog_id from dcs_prd_catalogs))
+union
+((select product_id, catalog_id from dcs_prd_catalogs)
+except
+(' + @mainSelect + '))
+) invalids where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+ exec(@genInvalidCacheIdsQuery);
+end
+
+truncate table dcs_prd_catalogs
+
+declare @cursorStatement nvarchar(2000);
+set @cursorStatement = 'declare prdCatalogsCursor cursor for ' + @mainSelect
+exec sp_executesql @cursorStatement
+
+  BEGIN TRANSACTION
+
+open prdCatalogsCursor
+fetch next from prdCatalogsCursor into @currentProductId, @currentCatalogId
+
+while @@fetch_status = 0    
+begin       
+  insert into dcs_prd_catalogs (product_id, catalog_id) values (@currentProductId, @currentCatalogId);
+  if @commit_count >= @commit_size_local
+  begin
+    COMMIT TRANSACTION
+    BEGIN TRANSACTION
+    set @commit_count=0;
+  end      
+  else
+  begin
+    set @commit_count = @commit_count + 1;
+  end
+  fetch next from prdCatalogsCursor into @currentProductId, @currentCatalogId      
+end
+  COMMIT TRANSACTION
+close prdCatalogsCursor
+deallocate prdCatalogsCursor
+END
+]]>
+      </proc-body>
+    </proc-db>
+
+    <proc-db db="db2">
+      <proc-params>
+        <proc-param spec="v_include_dynamic_children_num integer"/>
+        <proc-param spec="v_cmt_size integer"/>
+        <proc-param spec="v_generate_invalid_cache_ids integer"/>
+      </proc-params>
+      <proc-body>
+       <![CDATA[
+begin
+  declare v_cmt_count integer default 0;
+  declare v_current_product_id varchar(40);
+  declare v_current_catalog_id varchar(40);
+  declare v_main_select varchar(2000);
+  declare v_my_cursor cursor;
+  declare v_genInvalidCacheIdsQuery varchar(2000);
+  declare SQLCODE integer default 0;
+  if v_include_dynamic_children_num=1
+  then
+    set v_main_select = 'select catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+      from dcs_cat_catalogs catCatalogs,
+           dcs_cat_chldprd catChldPrd
+      where catCatalogs.category_id = catChldPrd.category_id
+      union
+      select catDynPrd.product_id as product_id, catCatalogs1.catalog_id
+      from dcs_cat_catalogs catCatalogs1,
+           dcs_cat_dynprd catDynPrd
+      where catCatalogs1.category_id = catDynPrd.category_id';
+  else
+    set v_main_select = 'select distinct catChldPrd.child_prd_id as product_id, catCatalogs.catalog_id as catalog_id
+      from dcs_cat_catalogs catCatalogs,
+           dcs_cat_chldprd catChldPrd
+      where catCatalogs.category_id = catChldPrd.category_id';
+  end if;
+    if (v_generate_invalid_cache_ids = 1)
+  then
+    set v_genInvalidCacheIdsQuery = 'insert into dcs_invalidated_prd_ids select distinct product_id from (
+((' || v_main_select || ')
+except
+(select product_id, catalog_id from dcs_prd_catalogs))
+union
+((select product_id, catalog_id from dcs_prd_catalogs)
+except
+(' || v_main_select || '))
+) where product_id not in (select product_id from dcs_invalidated_prd_ids)';
+    prepare s1 from v_genInvalidCacheIdsQuery;
+    execute s1;
+  end if;
+  COMMIT;
+  truncate table dcs_prd_catalogs immediate;
+  prepare s2 from v_main_select;
+  set v_my_cursor = cursor with hold for s2;
+  open v_my_cursor;
+  fetch v_my_cursor into v_current_product_id, v_current_catalog_id;
+  while (SQLCODE=0)
+  do
+    insert into dcs_prd_catalogs (product_id,catalog_id) values (v_current_product_id, v_current_catalog_id);
+    if v_cmt_count >= v_cmt_size then
+      COMMIT;
+      set v_cmt_count = 0;
+    else
+      set v_cmt_count = v_cmt_count + 1;
+    end if;
+    fetch v_my_cursor into v_current_product_id, v_current_catalog_id;
+  end while;
+  COMMIT;
+end
+]]>
+      </proc-body>
+    </proc-db>
+
+  </procedure>
+  <procedure name="pr_dcs_sku_catalogs" description="text">
+    <proc-db db="oracle">
+      <proc-params>
+        <proc-param spec="commit_size IN number" />
+        <proc-param spec="generate_invalid_cache_ids IN number" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+commit_count number := 0;
+begin
+
+if (generate_invalid_cache_ids=1)
+then
+insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+(select distinct prdCat.catalog_id, prdChldSku.sku_id
+  from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+  where prdCat.product_id = prdChldSku.product_id
+ minus
+select catalog_id, sku_id from dcs_sku_catalogs)
+UNION
+(select catalog_id, sku_id from dcs_sku_catalogs
+minus
+select distinct prdCat.catalog_id, prdChldSku.sku_id
+  from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+  where prdCat.product_id = prdChldSku.product_id)
+) where sku_id not in (select sku_id from dcs_invalidated_sku_ids);
+end if;
+
+execute immediate 'truncate table dcs_sku_catalogs';
+
+for i in (select distinct prdCat.catalog_id, prdChldSku.sku_id
+  from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+  where prdCat.product_id = prdChldSku.product_id)
+loop
+  insert into dcs_sku_catalogs (sku_id,catalog_id) values (i.sku_id, i.catalog_id);
+  if commit_count >= commit_size
+  then
+    COMMIT;
+    commit_count := 0;
+  else
+    commit_count := commit_count + 1;
+  end if;
+end loop;
+commit;
+end;
+      ]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="mssql">
+      <proc-params>
+        <proc-param spec="@commit_size int" />
+        <proc-param spec="@generate_invalid_asset_ids int" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+SET NOCOUNT ON
+declare @commit_size_local integer = @commit_size
+if (@generate_invalid_asset_ids=1)
+begin
+  BEGIN TRANSACTION
+  insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+(select distinct prdCat.catalog_id, prdChldSku.sku_id
+  from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+  where prdCat.product_id = prdChldSku.product_id
+ except
+select catalog_id, sku_id from dcs_sku_catalogs)
+UNION
+(select catalog_id, sku_id from dcs_sku_catalogs
+except
+select distinct prdCat.catalog_id, prdChldSku.sku_id
+  from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+  where prdCat.product_id = prdChldSku.product_id)
+) sub where sku_id not in (select sku_id from dcs_invalidated_sku_ids);
+  COMMIT TRANSACTION
+end
+
+truncate table dcs_sku_catalogs
+
+DECLARE @commit_count int = 0
+DECLARE @currentSkuId varchar(40)
+DECLARE @currentCatalogId varchar(40)
+  BEGIN TRANSACTION
+declare skuCatalogsCursor cursor for select distinct prdChldSku.sku_id, prdCat.catalog_id
+  from dcs_prd_catalogs prdCat, 
+       dcs_prd_chldsku prdChldSku 
+  where prdCat.product_id = prdChldSku.product_id
+
+open skuCatalogsCursor
+fetch skuCatalogsCursor into @currentSkuId, @currentCatalogId
+
+while @@FETCH_STATUS = 0
+begin  
+  insert into dcs_sku_catalogs (sku_id,catalog_id) values (@currentSkuId, @currentCatalogId)
+
+  if @commit_count >= @commit_size_local 
+  begin
+    COMMIT TRANSACTION;
+    BEGIN TRANSACTION
+    set @commit_count = 0;
+  end
+  else
+  begin
+    set @commit_count = @commit_count + 1
+  end
+  fetch skuCatalogsCursor into @currentSkuId, @currentCatalogId
+end
+   COMMIT TRANSACTION;  
+close skuCatalogsCursor
+deallocate skuCatalogsCursor   
+end
+]]>
+      </proc-body>
+    </proc-db>
+    <proc-db db="db2">
+      <proc-params>
+        <proc-param spec="in v_cmt_size integer" />
+        <proc-param spec="in v_generate_invalid_asset_ids integer" />
+      </proc-params>
+      <proc-body>
+        <![CDATA[
+BEGIN
+  declare SQLCODE integer default 0;
+  declare v_cmt_count integer default 0;
+  declare v_skuId varchar(40);
+  declare v_catalogId varchar(40);
+  declare v_cursor cursor with hold for select distinct prdChldSku.sku_id as my_sku_id, prdCat.catalog_id as my_catalog_id from dcs_prd_chldsku prdChldSku, dcs_prd_catalogs prdCat where prdCat.product_id = prdChldSku.product_id;
+  if v_generate_invalid_asset_ids=1 then
+    insert into dcs_invalidated_sku_ids (sku_id) select distinct sku_id from (
+     (select distinct prdCat.catalog_id, prdChldSku.sku_id
+      from dcs_prd_catalogs prdCat,
+       dcs_prd_chldsku prdChldSku
+      where prdCat.product_id = prdChldSku.product_id
+    except
+    select catalog_id, sku_id from dcs_sku_catalogs)
+    UNION
+    (select catalog_id, sku_id from dcs_sku_catalogs
+    except
+    select distinct prdCat.catalog_id, prdChldSku.sku_id
+    from dcs_prd_catalogs prdCat,
+         dcs_prd_chldsku prdChldSku
+    where prdCat.product_id = prdChldSku.product_id)
+    ) sub where sku_id not in (select sku_id from dcs_invalidated_sku_ids);
+  end if;
+  COMMIT;
+  truncate table dcs_sku_catalogs immediate;
+  open v_cursor;
+  fetch v_cursor into v_skuId, v_catalogId;
+  while (SQLCODE=0)
+  do
+    insert into dcs_sku_catalogs (sku_id, catalog_id) values (v_skuId, v_catalogId);
+    if v_cmt_count >= v_cmt_size then
+      COMMIT;
+      set v_cmt_count = 0;
+    else
+      set v_cmt_count = v_cmt_count + 1;
+    end if;
+    fetch v_cursor into v_skuId, v_catalogId;
+ END while;
+END
+]]>
+     </proc-body>
+    </proc-db>
+  </procedure>
+</schema>
+<!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/create_cms_procedures.xml#2 $$Change: 1179550 $-->

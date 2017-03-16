@@ -1,0 +1,188 @@
+ <!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="backing_maps_ddl"
+  description="Tables for the backing maps for dynamic repositories">
+  <comment>
+    @version$Id: //product/DAS/version/11.2/templates/DAS/sql/backing_maps_ddl.xml#1 $
+  </comment>
+
+  <comment>Tables for backing maps for item descriptors enables for dynamic properties</comment>
+  <table name="das_dyn_prop_map_str">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value" i18n="y">
+      <column-type db="generic" type="varchar" length="400"/>
+     </column>
+
+    <primary-key name="das_dyn_prop_map_str_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="prop_name" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_big_str">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value" i18n="y">
+      <column-type db="generic" type="long-varchar"/>
+      <column-type db="db2" type="clob"/>
+   </column>
+
+    <primary-key name="das_dyn_prop_map_big_str_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="prop_name" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_double">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value">
+      <column-type db="generic" type="numeric" length="19" scale="7"/>
+    </column>
+
+    <primary-key name="das_dyn_prop_map_double_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="prop_name" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_long">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value">
+      <column-type db="generic" type="numeric" length="19"/>
+    </column>
+
+    <primary-key name="das_dyn_prop_map_long_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="prop_name" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <!--  compound primary keys TWO COLUMN IDS -->
+
+  <table name="das_dyn_prop_map_str_2">
+    <!-- Id -->
+    <column name="id1" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="id2" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value" i18n="y">
+      <column-type db="generic" type="varchar" length="400"/>
+     </column>
+
+    <primary-key name="das_dyn_prop_map_str_2_p">
+      <index-column column="id1" order="asc" seq="1"/>
+      <index-column column="id2" order="asc" seq="2"/>
+      <index-column column="prop_name" order="asc" seq="3"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_big_str_2">
+    <!-- Id -->
+    <column name="id1" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="id2" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value" i18n="y">
+      <column-type db="generic" type="long-varchar"/>
+      <column-type db="db2" type="clob"/>
+   </column>
+
+    <primary-key name="das_dyn_prop_mp_bg_str_2_p">
+      <index-column column="id1" order="asc" seq="1"/>
+      <index-column column="id2" order="asc" seq="2"/>
+      <index-column column="prop_name" order="asc" seq="3"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_double_2">
+    <!-- Id -->
+    <column name="id1" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="id2" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value">
+      <column-type db="generic" type="numeric" length="19" scale="7"/>
+    </column>
+
+    <primary-key name="das_dyn_prop_mp_dbl_2_p">
+      <index-column column="id1" order="asc" seq="1"/>
+      <index-column column="id2" order="asc" seq="2"/>
+      <index-column column="prop_name" order="asc" seq="3"/>
+    </primary-key>
+  </table>
+
+  <table name="das_dyn_prop_map_long_2">
+    <!-- Id -->
+    <column name="id1" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="id2" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- prop name  -->
+    <column name="prop_name" nullable="n" description="Map Key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- prop value  -->
+    <column name="prop_value" nullable="y" description="Map Value">
+      <column-type db="generic" type="numeric" length="19"/>
+    </column>
+
+    <primary-key name="das_dyn_prop_mp_lng_2_p">
+      <index-column column="id1" order="asc" seq="1"/>
+      <index-column column="id2" order="asc" seq="2"/>
+      <index-column column="prop_name" order="asc" seq="3"/>
+    </primary-key>
+  </table>
+</schema>

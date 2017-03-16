@@ -1,0 +1,16 @@
+--
+-- Note replace @DYNAMO_ROOT@ with the ATG installation directory
+--
+
+@@DYNAMO_ROOT@/DAS/sql/db_components/oracle/site_ddl.sql
+@@DYNAMO_ROOT@/DAS/sql/db_components/oracle/seo_ddl.sql
+
+@@DYNAMO_ROOT@/DPS/sql/db_components/oracle/personalization_ddl.sql
+@@DYNAMO_ROOT@/DPS/sql/db_components/oracle/user_ddl.sql
+
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/priceLists_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/product_catalog_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/promotion_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/custom_catalog_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/commerce_site_ddl.sql
+@@DYNAMO_ROOT@/DCS/sql/db_components/oracle/location_ddl.sql

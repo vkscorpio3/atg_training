@@ -1,0 +1,67 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="purge_ddl" description="Purge Progress DDL">
+
+<comment/>
+<comment>Purge Progress Tables</comment>
+<comment>$Id: //product/DAS/version/11.2/templates/DAS/sql/purge_ddl.xml#1 $</comment>
+<comment/>
+
+<table name="das_purge_progress">
+  <column name="purge_progress_id" nullable="n">
+    <column-type db="generic" type="varchar" length="40"/>
+  </column>
+  <column name="item_type" nullable="n">
+    <column-type db="generic" type="varchar" length="254"/>
+  </column>
+  <column name="start_timestamp" nullable="y">
+    <column-type db="generic" type="timestamp"/>
+  </column>
+  <column name="update_timestamp" nullable="y">
+    <column-type db="generic" type="timestamp"/>
+  </column>
+  <column name="end_timestamp" nullable="y">
+    <column-type db="generic" type="timestamp"/>
+  </column>
+  <column name="status" nullable="n">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="success_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="skipped_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="skipped_on_error_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="error_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="processed_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="estimated_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="total_items" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <column name="owner" nullable="y">
+    <column-type db="generic" type="varchar" length="254"/>
+  </column>
+  <column name="criteria" nullable="y">
+    <column-type db="generic" type="varchar" length="4000"/>
+  </column>
+  <column name="related_criteria" nullable="y">
+    <column-type db="generic" type="varchar" length="4000"/>
+  </column>
+  <column name="error_message" nullable="y">
+    <column-type db="generic" type="varchar" length="8000"/>
+  </column>
+  <primary-key name="das_purge_pr_p">
+    <index-column column="purge_progress_id"/>
+  </primary-key>
+</table>
+
+</schema>
+<!-- @version $Id: //product/DAS/version/11.2/templates/DAS/sql/purge_ddl.xml#1 $$Change: 946917 $ -->

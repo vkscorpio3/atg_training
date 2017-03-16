@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+ATG-Module-Uri: store.war
+ATG-Context-Root: /ClothingStore
+ATG-Module-Version: store.war

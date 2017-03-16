@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  This build.xml file contains the tasks common to most if not all of the
+  projects.  The basedir is not set here as it is meaningless in this context.
+-->
+<project name="common">
+
+	<!-- Define an if and else task for use in this definition -->
+	<taskdef name="if" classname="ise.antelope.tasks.IfTask" classpath="${global.dir}/../lib/atg-ant.jar" />
+
+	<taskdef name="else" classname="ise.antelope.tasks.ElseTask" classpath="${global.dir}/../lib/atg-ant.jar" />
+
+
+	<!-- Create a macro for copying sql files. This macro provides the necessary
+           filter substitution of variables.
+        -->
+	<macrodef name="copytemplate">
+		<attribute name="destdir" />
+		<attribute name="srcdir" />
+		<attribute name="coreschemauser" />
+		<attribute name="catalogschemauser" />
+		<sequential>
+
+			<echo>Performing Substitution.  coreschemauser=@{coreschemauser}  catalogschemauser=@{catalogschemauser}</echo>
+			<copy todir="@{destdir}" failonerror="false" verbose="true">
+				<fileset dir="@{srcdir}" />
+				<filterchain>
+					<replacetokens>
+						<!-- We assume that the first four properties are constant properties -->
+						<token key="core_schema" value="@{coreschemauser}" />
+						<token key="catalog_schema" value="@{catalogschemauser}" />
+						<token key="DYNAMO_ROOT" value="${dynamo.root.dir}" />
+						<token key="MODULE_NAME" value="${module.name}" />
+						<token key="DATABASE_TYPE" value="${database.type}" />
+					</replacetokens>
+				</filterchain>
+				<mapper type="glob" from="*.sql_master" to="*.sql" />
+			</copy>
+		</sequential>
+	</macrodef>
+
+	<!-- The classpath for the project. -->
+	<path id="lib.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+	</path>
+
+	<!-- The classpath for the project's unit tests. -->
+	<path id="test.lib.classpath">
+		<fileset dir="${test.lib.dir}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+		<fileset dir="${global.dir}/../lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- The dynamo class path -->
+	<path id="dynamo.classpath">
+		<fileset dir="${dynamo.home}/../DAS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DAS-UI/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DPS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DSS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../PublishingWebAgent/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DCS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- The classpath for the PMD task. -->
+	<path id="pmd.lib.classpath">
+		<fileset dir="${pmd.lib.dir}">
+			<include name="**/*.jar" />
+			<include name="**/*.zip" />
+		</fileset>
+	</path>
+
+	<!--
+    The location of the rules to execute for PMD.
+    -->
+	<path id="pmd.rules.classpath">
+		<path refid="pmd.lib.classpath" />
+		<pathelement path="${pmd.rules.dir}" />
+	</path>
+
+	<!-- The classpath for jalopy. -->
+	<path id="jalopy.lib.classpath">
+		<fileset dir="${jalopy.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- Other things to watch for in the classpath -->
+	<patternset id="resource.files">
+		<include name="**/*.properties" />
+		<include name="**/*.xml" />
+		<include name="**/*.dtd" />
+	</patternset>
+
+	<!--
+    Create the directories used in the build process. Not intended to be used publically.
+    -->
+	<target name="-createdirs">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.dir}/lib" />
+		<mkdir dir="${build.dir}/liveconfig" />
+		<mkdir dir="${build.config.dir}" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${reports.dir}" />
+		<mkdir dir="${javadoc.dir}" />
+		<mkdir dir="${ear.dir}" />
+	</target>
+
+	<!--
+    checks to see which core directories exist this allows the ANT tasks to be 
+    a bit smarter and only perform duties if they need to.
+    -->
+	<target name="-coredirsexist" description="verifies that certain core directories exist">
+		<available file="${src.dir}" property="srcdirectory.exists" />
+		<available file="${test.src.dir}" property="testsrcdirectory.exists" />
+		<available file="${sql.dir}" property="sqldir.exists" />
+		<available file="${liveconfig.dir}" property="liveconfig.exists" />
+		<available file="${config.dir}" property="config.exists" />
+		<available file="${lib.dir}" property="libdir.exists" />
+	</target>
+
+	<!--
+      Initializes the build.  This target is not public, but should be called
+      by all the others.
+    -->
+	<target name="-init">
+		<!-- Create the timestamp -->
+		<tstamp />
+		<echo message="" />
+		<echo message="" />
+		<echo message="#############################################################################" />
+		<echo message="#############################################################################" />
+		<echo message="${module.name}: start date = ${DSTAMP}  start time = ${TSTAMP}" />
+		<echo message="JAVA_HOME       = ${env.JAVA_HOME}" />
+		<echo message="dynamo.home     = ${dynamo.home}" />
+		<echo message="dynamo.root.dir = ${dynamo.root.dir}" />
+		<echo message="deploy.definition.file = ${deploy.definition.file}" />
+		<echo message="global.dir      = ${global.dir}" />
+		<echo message="common.dir      = ${common.dir}" />
+		<echo message="install.unit    = ${install.unit}" />
+		<echo message="#############################################################################" />
+		<echo message="#############################################################################" />
+		<echo message="" />
+		<echo message="" />
+		<!-- Sleep for a bit -->
+		<sleep seconds="3" />
+	</target>
+
+	<!--
+    Deletes the build and install directories.
+      <fileset dir="${application.ear.install.dir}${module.name}" excludes="${application.ear.install.dir}${module.name}/${application.ear.clean.exclude.dir}" />
+    -->
+	<target name="clean" depends="-init" description="Deletes the contents of the install and build directories.">
+		<echo message="Deleting ${install.dir} " />
+		<echo message="Deleting ${build.dir} " />
+		<echo message="Deleting ${application.ear.install.dir}${module.name} " />
+		<echo message="Deleting ${env.DYNAMO_HOME}/servers/${ear.store.server}" />
+		<echo message="Deleting ${env.DYNAMO_HOME}/servers/${ear.store-ca.server}" />
+		<echo message="Deleting ${env.DYNAMO_HOME}/servers/${ear.store.server}-script" />
+		<echo message="Deleting ${env.DYNAMO_HOME}/servers/${ear.store-ca.server}-script" />
+		<delete failonerror="false" includeEmptyDirs="true">
+			<fileset dir="${install.dir}" excludes="${clean.task.excludes}" />
+			<fileset dir="${build.dir}" />
+			<fileset dir="${application.ear.install.dir}${module.name}">
+				 <exclude name="**/boot.properties" />
+		        </fileset>
+			<fileset dir="${env.DYNAMO_HOME}/servers/${ear.store.server}" />
+			<fileset dir="${env.DYNAMO_HOME}/servers/${ear.store-ca.server}" />
+			<fileset dir="${env.DYNAMO_HOME}/servers/${ear.store.server}-script" />
+			<fileset dir="${env.DYNAMO_HOME}/servers/${ear.store-ca.server}-script" />
+		</delete>
+	</target>
+
+	<!--
+    Compiles and jars the code.
+    -->
+	<target name="build" depends="-init,compile,-jar,-copylibs" description="Compiles and jars the code.">
+	</target>
+
+
+	<!-- Compiles the codebase -->
+	<target name="compile" depends="-createdirs,-coredirsexist" if="srcdirectory.exists" description="Compiles the source code to the build directory.">
+		<mkdir dir="${classes.dir}" />
+
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" deprecation="false" optimize="false" verbose="${javac.verbose.bool}">
+			<classpath path="${classpath}" />
+			<classpath refid="lib.classpath" />
+			<classpath refid="dynamo.classpath" />
+			<include name="**/*.java" />
+		</javac>
+		<!-- copy java resource files to build directory -->
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}/">
+				<patternset refid="resource.files" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- Compiles the test classes -->
+	<target name="compiletest" depends="compile" if="testsrcdirectory.exists" description="Compiles the unit tests.">
+
+		<mkdir dir="${testclasses.dir}" />
+		<javac srcdir="${test.src.dir}" destdir="${testclasses.dir}" debug="true" deprecation="false" optimize="false"  verbose="${javac.verbose.bool}">
+			<classpath path="${classes.dir}" />
+			<classpath refid="lib.classpath" />
+			<classpath refid="dynamo.classpath" />
+			<classpath refid="test.lib.classpath" />
+			<include name="**/*.java" />
+		</javac>
+	</target>
+
+
+	<target name="-jar" depends="-createdirs,-jarclasses,-jarliveconfig,-copymanifest" description="creates build directories, jars classes and configuration">
+
+	</target>
+
+	<target name="-copymanifest">
+		<!-- Set filter token to look for 
+             install unit
+             module parent name
+             and module name
+             settings in manifests and configuration files -->
+		<filter token="install_unit" value="${install.unit}" />
+		<filter token="module_name" value="${module.name}" />
+
+		<!-- Copy the manifest -->
+		<copy todir="${build.dir}/META-INF" filtering="true">
+			<fileset dir="${inf.dir}" />
+		</copy>
+
+		<!-- 
+            Make a temporary config directory to support filter substitution 
+            This allows us to salt substitution variables in the config 
+            files.  We try and keep this to a minimum to reduce confusion.
+        -->
+		<mkdir dir="${build.tempconfig.dir}" />
+		<copy todir="${build.tempconfig.dir}" filtering="true">
+			<fileset dir="${config.dir}" />
+		</copy>
+
+		<!-- check to see if we should jar up the configuration files or just 
+             copy them to the config directory -->
+		<if name="jar.configs.and.classes" value="true">
+			<echo message="Jarring up configuration files" />
+			<!-- Jar up the configuration files -->
+			<jar jarfile="${build.config.dir}/config.jar" basedir="${build.tempconfig.dir}/" includes="**" />
+
+			<else>
+				<!-- Not supposed to jar up the configuration files just copy
+                 them to a directory with the name config.jar -->
+				<echo message="Using exploded configuration files" />
+				<mkdir dir="${build.config.dir}/config.jar" />
+				<copy todir="${build.config.dir}/config.jar">
+					<fileset dir="${build.tempconfig.dir}" />
+				</copy>
+			</else>
+		</if>
+
+	</target>
+
+	<!--
+    Jars the classes and config files, and copies the associated lib files.
+    -->
+	<target name="-jarclasses" depends="-createdirs,-coredirsexist" if="srcdirectory.exists" description="jars classes and source to build directory.">
+
+		<if name="jar.configs.and.classes" value="true">
+			<echo message="Jarring up class files" />
+			<!-- Jar up the configuration files -->
+			<jar jarfile="${build.dir}/lib/classes.jar" basedir="${classes.dir}/" includes="**" />
+
+			<else>
+				<!-- Not supposed to jar up the configuration files just copy
+                 them to a directory with the name config.jar -->
+				<echo message="Using exploded class files" />
+				<mkdir dir="${build.dir}/lib/classes.jar" />
+				<copy todir="${build.dir}/lib/classes.jar">
+					<fileset dir="${classes.dir}" />
+				</copy>
+			</else>
+		</if>
+
+		<zip zipfile="${build.dir}/src.zip" basedir="${src.dir}/" includes="**" />
+	</target>
+
+
+	<target name="-jarliveconfig" depends="-createdirs,-coredirsexist" if="liveconfig.exists" description="copies liveconfig to build directory.">
+		<copy todir="${build.dir}/liveconfig">
+			<fileset dir="${liveconfig.dir}" />
+		</copy>
+	</target>
+
+	<target name="-copylibs" depends="-coredirsexist" if="libdir.exists" description="copies libs to lib directory if they exist">
+		<copy todir="${build.dir}/lib">
+			<fileset dir="${lib.dir}" />
+		</copy>
+	</target>
+
+	<!--
+    Installs the codebase to the install directory.  This will not build anything,
+    but will create enough of a base application to run off.
+  -->
+	<target name="install" depends="-init, -createdirs, -installunit, -installcore, -installsql" description="Installs the codebase to the install directory.">
+	</target>
+
+	<target name="-installcore" depends="-copymanifest" description="Installs the core config and classes">
+		<mkdir dir="${install.dir}/../META-INF" />
+		<manifest mode="update" file="${install.dir}/../META-INF/MANIFEST.MF" />
+
+		<!-- <delete dir="${install.dir}/META-INF" /> -->
+		<mkdir dir="${install.dir}/META-INF" />
+		<copy todir="${install.dir}/META-INF" file="${build.dir}/META-INF/MANIFEST.MF" />
+
+		<!-- <delete dir="${install.dir}/lib" /> -->
+		<mkdir dir="${install.dir}/lib" />
+		<!-- Do a copy so the classes stick around for Eclipse and other tools -->
+		<copy todir="${install.dir}/lib">
+			<fileset dir="${build.dir}/lib" />
+		</copy>
+
+		<!-- <delete dir="${install.dir}/config" /> -->
+		<mkdir dir="${install.dir}/config" />
+		<copy todir="${install.dir}/config">
+			<fileset dir="${build.config.dir}" />
+		</copy>
+
+		<!-- <delete dir="${install.dir}/liveconfig" /> -->
+		<mkdir dir="${install.dir}/liveconfig" />
+		<copy todir="${install.dir}/liveconfig">
+			<fileset dir="${build.dir}/liveconfig" />
+		</copy>
+	</target>
+
+	<target name="-installunit" description="Sets the project installation directory">
+
+		<mkdir dir="${dynamo.root.dir}/${install.unit}/META-INF" />
+		<manifest mode="update" file="${dynamo.root.dir}/${install.unit}/META-INF/MANIFEST.MF">
+			<attribute name="ATG-Install-Unit" value="${install.unit}" />
+			<attribute name="ATG-Install-Version" value="${install.unit}@9.0" />
+
+			<!-- for merchandising need to include DCS-UI                           -->
+			<attribute name="ATG-Install-Requires" value="DCS-UI@9.0"/>
+
+			<!-- Example of how to write a requirement against an install unit      -->
+			<!-- <attribute name="ATG-Install-Requires" value="DCS-ABTest@2004.3"/> -->
+
+		</manifest>
+
+	</target>
+
+	<target name="-installsql" description="Copy the sql to the deploy directory" depends="-coredirsexist" if="sqldir.exists">
+
+		<echo message="Copying project sql to ${install.dir}/sql" />
+
+		<!-- <delete dir="${install.dir}/sql" /> -->
+		<mkdir dir="${install.dir}/sql" />
+
+		<!-- copy any text files -->
+		<patternset id="sql.text.files">
+			<include name="**/*.TXT" />
+			<include name="**/*.txt" />
+		</patternset>
+		<copy todir="${install.dir}/sql" verbose="true" filtering="true">
+			<fileset dir="${sql.dir}">
+				<patternset refid="sql.text.files" />
+			</fileset>
+		</copy>
+
+		<!-- Copy over the SQL files. -->
+		<copy todir="${install.dir}/sql" verbose="true">
+			<fileset dir="${sql.dir}" />
+			<mapper type="glob" from="*.sql" to="*.sql" />
+		</copy>
+
+		<!-- The destdir goes into the scripts as the filter, so this isn't as stupid as it looks. -->
+		<copytemplate srcdir="${sql.dir}/${database.type}/install" coreschemauser="${jdbc.core.user}" catalogschemauser="${jdbc.cataloga.user}" destdir="${install.dir}/sql/${database.type}/install" />
+
+		<copytemplate srcdir="${sql.dir}/${database.type}/uninstall" coreschemauser="${jdbc.core.user}" catalogschemauser="${jdbc.cataloga.user}" destdir="${install.dir}/sql/${database.type}/uninstall" />
+
+		<antcall target="-export-atg-sql" />
+
+	</target>
+
+
+	<target name="-export-atg-sql" description="Packages up ATG SQL for export to DBAs">
+		<echo message="packaging up ATG sql" />
+		<!-- make a temporary directory where we can work with the ATG sql -->
+		<mkdir dir="${build.dir}/atgsql" />
+
+		<!-- Copy all the sql directories shipped with ATG -->
+		<patternset id="atg.sql.dirs">
+			<include name="BIZUI/**/sql/**" />
+			<include name="J2EEServer/**/sql/**" />
+			<include name="CSRJSP/**/sql/**" />
+			<include name="DAS/**/sql/**" />
+			<include name="DPS/**/sql/**" />
+			<include name="DSS/**/sql/**" />
+			<include name="DCS/**/sql/**" />
+			<include name="B2BCommerce/**/sql/**" />
+
+
+			<exclude name="**/patch/**" />
+			<exclude name="**/src/**" />
+		</patternset>
+		<copy description="Gathering up ATG sql" todir="${build.dir}/atgsql" verbose="${copy.verbose.bool}">
+			<fileset dir="${dynamo.root.dir}">
+				<patternset refid="atg.sql.dirs" />
+			</fileset>
+		</copy>
+
+		<!-- jar up the ATG sql and send it to the install sql directory -->
+		<jar destfile="${install.dir}/sql/atgsql.jar">
+			<fileset dir="${build.dir}/atgsql">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+
+		<!-- Next copy our shell script across. Within the sql install directory 
+             is a shell script designed to replace the path to the installed ATG 
+             sql scripts with a relative path to the atg sql that we just jarred 
+             up.  This is a convenience to those who need to install the sql but 
+             do not have an ATG install to point to for the OOTB sql.
+             
+             TODO: since we've gone so far as to pull all SQL together in a tight 
+             happy ball perhaps we should think about refactoring the sql execution 
+             to call the sql we bundled in atgsql.jar instead of the sql on the ATG 
+             install.
+             
+             Recall the reason we bundle it together is to allow us to send the SQL 
+             to environments that do not have an ATG install.  This occurs when you 
+             have another application server such as JBoss and end up deploying the 
+             ATG application in a big-ear.
+        
+        <filter token="DAS_ROOT" value="${das.root.dir}" />
+	-->
+		<filter token="DYNAMO_ROOT" value="${dynamo.root.dir}" />
+		<patternset id="sql.shell.files">
+			<include name="**/*.sh" />
+			<include name="**/*.bat" />
+		</patternset>
+		<copy todir="${install.dir}/sql" verbose="true" filtering="true">
+			<fileset dir="${sql.dir}">
+				<patternset refid="sql.shell.files" />
+			</fileset>
+		</copy>
+
+	</target>
+
+	<!-- ================================================================= -->
+	<!-- Reports                                                           -->
+	<!-- ================================================================= -->
+	<!--
+        Runs reports against the source code.
+      -->
+	<target name="reports" depends="-init,checkstyle,pmd" description="Runs reports against the source code." />
+
+
+	<!--
+        The checkstyle target.
+
+        This checks that variable names and constants are in the Sun coding convention style.
+      -->
+	<target name="checkstyle" depends="-createdirs,-coredirsexist" if="srcdirectory.exists" description="Checks the style of the code according to conventions.">
+		<antcall target="-runcheckstyle" />
+	</target>
+
+	<target name="-runcheckstyle" description="Checks the style of the code according to conventions.">
+
+		<if name="checkstyle.on" value="true">
+			<echo message="Checkstyle enabled, running checks..." />
+			<!-- The classpath for checkstyle. -->
+			<path id="checkstyle.lib.classpath">
+				<fileset dir="${checkstyle.home}">
+					<include name="checkstyle-all-*.jar" />
+				</fileset>
+			</path>
+
+			<taskdef resource="checkstyletask.properties" classpathref="checkstyle.lib.classpath" />
+
+			<checkstyle config="${checkstyle.rules.set}">
+				<fileset dir="${src.dir}" includes="**/*.java" />
+				<formatter type="plain" />
+				<formatter type="xml" toFile="${reports.dir}/checkstyle.xml" />
+			</checkstyle>
+
+			<else>
+				<echo message="Checkstyle disabled. If you want Checkstlye to run ensure the ANT property checkstyle.on=true" />
+			</else>
+		</if>
+	</target>
+
+
+	<!--
+    The PMD target.
+
+    PMD can be found at http://pmd.sourceforge.net
+    -->
+	<target name="pmd" depends="-createdirs,-coredirsexist" if="srcdirectory.exists" description="Runs PMD against the source code.">
+
+		<if name="pmd.on" value="true">
+			<echo message="Running PMD with rulesets: ${pmd.rulesets}" />
+			<mkdir dir="${build.dir}" />
+			<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask" classpathref="pmd.lib.classpath" />
+			<pmd rulesetfiles="${pmd.rulesets}" printToConsole="${pmd.printToConsole}" failonerror="true" failOnRuleViolation="${pmd.failOnRuleViolation}">
+				<classpath refid="pmd.rules.classpath" />
+				<formatter type="xml" toFile="${reports.dir}/pmd.xml" />
+				<fileset dir="${src.dir}">
+					<include name="**/*.java" />
+				</fileset>
+			</pmd>
+			<available file="${reports.dir}/pmd.xml" type="file" property="pmd.xml.exists" />
+			<antcall target="-createpmd" />
+			<else>
+				<echo message="PMD disabled. If you want PMD to run ensure the ANT property pmd.on=true" />
+			</else>
+		</if>
+	</target>
+
+	<!--
+        Create the PMD file if it doesn't already exist.  This prevents errors in CC.
+    -->
+	<target name="-createpmd" unless="pmd.xml.exists">
+		<echo file="${reports.dir}/pmd.xml" message="&lt;?xml version=&quot;1.0&quot;?&gt;&lt;pmd&gt;&lt;/pmd&gt;" />
+	</target>
+
+	<!-- ================================================================= -->
+	<!-- Miscellaneous                                                     -->
+	<!-- ================================================================= -->
+
+	<!--
+    Creates the javadocs for the project.  This is an expensive operation.
+    -->
+	<target name="javadoc" depends="-init,-createdirs" description="Builds the javadoc.">
+		<javadoc destdir="${javadoc.dir}" author="true" version="true" use="true">
+			<packageset dir="${src.dir}" defaultexcludes="yes">
+				<include name="**" />
+			</packageset>
+			<classpath path="${classpath}" />
+			<classpath refid="lib.classpath" />
+			<classpath refid="dynamo.classpath" />
+			<link offline="true" href="http://java.sun.com/j2se/1.4.2/docs/api/" packagelistLoc="${jdk.docs.dir}" />
+			<link offline="true" href="http://www.atg.com/repositories/ContentCatalogRepository_en/manuals/ATG7.1/apidoc/" packagelistLoc="${dynamo.docs.dir}" />
+		</javadoc>
+	</target>
+
+	<!-- Java Hotswap for those who wish to use it.  This requires the hotswap.jar
+	     which can be found at https://hotswap.dev.java.net/.  This also requires 
+		 that you run at least Java 1.4.2.  This was verified to function under 
+		 Java 1.4.2_08-b03
+		 
+		 You'll need to include some JVM Args as well.  This should be set in 
+		 your postEnvironment file (.bat or .sh depending on OS) for your server instance
+		 or ${dynamo.home}/localconfig/postEnvironment for all instances on your install.
+		 
+		 Naturally if you are running a different application server you might be placing
+		 your JVM args elsewhere.
+		 
+		 On Windows :
+		 
+		 set JAVA_ARGS=%JAVA_ARGS% -Xverify:none -Xdebug -Xrunjdwp:transport=dt_socket,address=9000,server=y,suspend=n
+ 
+         That's it. You should then be able to run "ant hotswap" and it will compile 
+		 changed files and push them to your running server		 
+	-->
+
+	<!-- Define the hot swap task -->
+	<taskdef name="hotswap" classname="dak.ant.taskdefs.Hotswap" classpath="${global.dir}/../lib/hotswap.jar" />
+
+	<!-- Hot deploy target -->
+	<target name="hotswap" description="Hot swaps newly changed classes">
+
+		<!-- Set up a timestamp -->
+		<tstamp>
+			<format property="hotswap.tstamp" pattern="MM/dd/yyyy kk:mm:ss" />
+		</tstamp>
+
+		<!-- Compile -->
+		<antcall target="compile" />
+
+		<!-- Swap those that are after our timestamp -->
+		<hotswap verbose="true" port="9000">
+			<fileset dir="${classes.dir}" includes="**/*.class">
+				<date datetime="${hotswap.tstamp}" pattern="MM/dd/yyyy kk:mm:ss" when="after" granularity="0" />
+			</fileset>
+		</hotswap>
+
+	</target>
+
+
+	<!--
+    The format target.  This formats the code according to coding conventions and the Jalopy plug in.
+    -->
+	<target name="format" depends="-init" if="jalopy.home" description="Formats the code according to conventions.">
+		<taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.lib.classpath" />
+
+		<jalopy convention="${jalopy.rules.dir}/jalopy.xml" history="file" historymethod="adler32">
+			<fileset dir="${src.dir}">
+				<include name="**/*.java" />
+			</fileset>
+		</jalopy>
+	</target>
+
+	<!--
+      The junit target.  This runs the unit tests.
+    -->
+	<target name="junit" depends="-init,compiletest" if="testsrcdirectory.exists" description="Runs the junit tests.">
+		<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" classpathref="test.lib.classpath" />
+
+		<junit printsummary="yes" haltonfailure="yes">
+			<classpath path="${classes.dir}" />
+			<classpath path="${testclasses.dir}" />
+			<classpath refid="test.lib.classpath" />
+			<classpath refid="lib.classpath" />
+			<classpath refid="dynamo.classpath" />
+
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${reports.dir}">
+				<fileset dir="${test.src.dir}">
+					<include name="**/*Test*.java" />
+					<exclude name="**/AllTests.java" />
+					<exclude name="**/*InContainerTest.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<!--
+      The cactus target.  This runs cactus tests.
+    -->
+	<target name="cactus" depends="-init,compiletest" if="testsrcdirectory.exists" description="Runs the cactus tests.">
+
+		<echo message="test.lib.dir: ${test.lib.dir}" />
+		<echo message="global.dir: ${global.dir}" />
+
+		<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" classpathref="test.lib.classpath" />
+
+
+		<condition property="mytest.present">
+			<isset property="mytest" />
+		</condition>
+
+		<if name="mytest.present" value="true">
+			<echo message="Running cactus specific test for: ${mytest}" />
+			<property name="testclasses" value="**/${mytest}" />
+			<else>
+				<echo message="Running all cactus tests" />
+				<property name="testclasses" value="**/*InContainerTest.java" />
+			</else>
+		</if>
+
+		<junit printsummary="on" haltonfailure="no">
+			<sysproperty key="atg.dynamo.root" value="${dynamo.home}/../" />
+			<sysproperty key="basedir" value="${basedir}" />
+			<sysproperty key="test.tmp.dir" value="${test.tmp.dir}" />
+			<sysproperty key="cactus.contextURL" value="${cactus.contextURL}" />
+			<sysproperty key="cactus.servletRedirectorName" value="${cactus.servletRedirectorName}" />
+			<classpath path="${classes.dir}" />
+			<classpath path="${testclasses.dir}" />
+			<classpath refid="test.lib.classpath" />
+			<classpath refid="lib.classpath" />
+			<classpath refid="dynamo.classpath" />
+
+			<!-- output failure messages to the screen -->
+			<formatter type="brief" usefile="false" />
+			<formatter type="xml" />
+
+
+			<batchtest fork="yes" todir="${reports.dir}">
+				<fileset dir="${test.src.dir}">
+					<include name="${testclasses}" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+	</target>
+
+	<!-- Pub Import stub -->
+	<target name="import-pub" description="Imports Publishing, BIZUI, and AssetUI configuration data">
+	</target>
+
+	<!-- Content Import stub -->
+	<target name="import-content" description="Imports devCentral Content">
+	</target>
+
+	<!-- Roles Import stub -->
+	<target name="import-roles" description="Imports devCentral roles">
+	</target>
+
+	<target name="-copy-versioned-datasources">
+		<copy todir="${dynamo.home}/localconfig" includeemptydirs="true" filtering="true" overwrite="true" failonerror="no">
+			<fileset dir="${global.dir}/${global.server.dir}/${script.server.name}/localconfig">
+				<include name="atg/**/*.*" />
+			</fileset>
+			<filterset refid="dsFilterSet" />
+		</copy>
+	</target>
+	<target name="post-assemble" description="Post Assembly task">
+	</target>
+	
+</project>

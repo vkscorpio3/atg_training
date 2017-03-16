@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="build/config/config.jar"/>
+	<classpathentry kind="lib" path="build/lib/classes.jar"/>
+	<classpathentry kind="lib" path="j2ee/store.war/WEB-INF/lib/coreTaglib1_0.jar"/>
+	<classpathentry kind="lib" path="j2ee/store.war/WEB-INF/lib/jstl.jar"/>
+	<classpathentry kind="src" path=".apt_generated">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/opt5/ATG/ATG11.2/DAS/lib/classes.jar"/>
+	<classpathentry kind="lib" path="/opt5/ATG/ATG11.2/DAS/lib/servlet.jar"/>
+	<classpathentry kind="lib" path="/opt5/ATG/ATG11.2/DAS/taglib/dspjspTaglib/1.0/lib/dspjspTaglib1_0.jar"/>
+	<classpathentry kind="lib" path="/shared1/Bootcamp/BCW1-Init/workspace/modules/ClothingStore/j2ee/store.war/WEB-INF/lib/standard.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_111"/>
+	<classpathentry kind="lib" path="/opt5/ATG/ATG11.2/DPS/lib/classes.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

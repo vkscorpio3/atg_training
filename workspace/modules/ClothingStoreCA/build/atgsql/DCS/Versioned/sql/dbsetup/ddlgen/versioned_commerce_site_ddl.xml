@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is a generated file -->
+
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="versioned_commerce_site_ddl" description="Tables for the DCS Custom Catalog site repository">
+<comment>
+This file contains create table statements, which will configure
+your database for use MultiSite
+</comment>
+
+  
+	 <table name="dcs_site" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="catalog_id" nullable="y">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="list_pricelist_id" nullable="y">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="sale_pricelist_id" nullable="y">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+
+    <column default="" description="" i18n="n" name="max_num_coupons" nullable="y">
+       <column-type db="generic" type="integer"/>
+    </column>
+    
+    <column default="" description="" i18n="n" name="max_num_coupons_per_order" nullable="y">
+       <column-type db="generic" type="integer"/>
+    </column>
+    
+    
+    
+  
+			<primary-key name="dcs_site_p">
+      <index-column column="id" order="asc" seq="1"/>
+    	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+	 </table>
+</schema><!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/commerce_site_ddl.xml#1 $$Change: 946917 $-->

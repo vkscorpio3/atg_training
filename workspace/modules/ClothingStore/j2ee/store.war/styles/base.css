@@ -1,0 +1,161 @@
+@charset "utf-8";
+/**
+* @link            
+ * @lastmodified    $ Date: 02-07-2012 03:19 PM $
+ * @purpose         mainly including font, color, form and some of public styles.
+**/
+
+.clear-block:after{ 
+ content: ".";
+ display: block;
+ height: 0;
+ clear: both;
+ visibility: hidden;
+}
+
+* html .clear-block{
+ height: 1%; /* Hides from IE-mac \*/
+}
+
+/******************************** 
+	global define
+*********************************/
+html,body,div,ul,li,lo,p,span,form,input,h1,h2,h3,h4,h5,h6,img,a,table,tr,td,br,fieldset,dl,dt,dd{
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+body{
+	background: url(../images/common/body_bg.gif) #e2dad0 repeat-x center top;
+	font: 11px Helvetica, Arial, sans-serif;
+	color: #666; /* grey */
+	word-break: break-all;
+	margin: 0 auto;
+	-webkit-text-size-adjust: none; /* fixed Chrome browse, there are some font size less-than 12px */
+    -webkit-font-size: 10px; /* fixed Chrome browse, there are some font size less-than 12px*/
+}
+
+img,fieldset{
+	border: 0;
+}
+
+a{
+	font-size: 11px;
+	color: #666; /* grey */
+	text-decoration: none;
+}
+
+a:hover{
+	font-size: 11px;
+	color: #528900; /* green */
+	text-decoration: none;
+	cursor: pointer;
+}
+
+table{
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+	font-size: 11px;
+}
+
+/******************************** 
+	public
+*********************************/
+h2{
+	font-size: 20px;
+	text-transform: capitalize;
+	font-family: "Times New Roman", Times, serif
+}
+
+h3{
+	font-size: 16px;
+	text-transform: uppercase;
+	font-family: "Times New Roman", Times, serif;
+	float: left;
+	width: 100%;
+	margin: 30px 0 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #c4c4c4; /* light grey */
+	text-align: left;
+}
+
+h3.green{
+	font-size: 13px;
+}
+
+h4{
+	font-size: 12px;
+	text-transform: uppercase;
+}
+
+.orange, .green{
+	color: #528900; /* green */
+}
+
+.blod{
+	font-weight: 700;
+}
+
+.grey{
+	color: #666; /* grey */
+}
+
+.error{
+	font-size: 12px;
+	color: #ff3300;
+	margin-bottom: 20px;
+}
+
+.was{
+	text-decoration: line-through;
+}
+
+.now{
+	color: #528900; /* green */
+}
+
+.uppercase{
+	text-transform: uppercase;
+}
+
+table tbody td{
+	padding-bottom: 10px;
+}
+
+table tfoot td{
+	padding-top: 15px;
+}
+
+input.textInput{
+	width: 330px;
+}
+
+.select{
+	width: 330px;
+}
+
+.select.year, .select.day{
+	width: 90px;
+}
+
+.select.month{
+	width: 145px;
+}
+
+.btn{
+	background-color: #e1e400; /* orange */
+	padding: 0 15px;
+	height: 26px;
+	line-height: 26px;
+	display: inline-block;
+}
+
+.btn span{
+	font-size: 11px;
+	color: #fff; /* white */
+	font-weight: 700;
+	text-transform: uppercase;
+	font-family: "Times New Roman", Times, serif
+}

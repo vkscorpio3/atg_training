@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is a generated file -->
+
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="versioned_dynamic_metadata_ddl" description="Tables for the Dynamic Metadata repository">
+  <comment>
+    @version$Id: //product/DAS/version/11.2/templates/DAS/sql/dynamic_metadata_ddl.xml#1 $
+  </comment>
+
+  <comment>Tables for Dynamic Repository Metadata storage</comment>
+  
+	 <table name="das_gsa_dyn_type" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="workspace_id" nullable="n" description="the id of the workspace that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="branch_id" nullable="n" description="the id of the branch that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="is_head" nullable="n" description="is this version the head of branch">
+				 <column-type db="generic" type="one-digit"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_deleted" nullable="n" description="flag indicating that the version is deleted">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_editable" nullable="n" description="flag indicating that version is editable">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="pred_version" nullable="y" description="the predecessor version number">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="checkin_date" nullable="y" description="date the asset was checked in if not a working version">
+				 <column-type db="generic" type="datetime"/>
+				 <column-type db="oracle" type="timestamp"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Type name for dynamic type item descriptor" i18n="n" name="type_name" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Item descriptor name" i18n="n" name="item_descriptor" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Root item descriptor name" i18n="n" name="root_item_descriptor" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Repository name" i18n="n" name="repository" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Subtype value" i18n="n" name="sub_type_value" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Subtype number" i18n="n" name="sub_type_num" nullable="y">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    <column default="" description="If this item is removed" i18n="n" name="removed" nullable="y">
+       <column-type db="generic" length="1" type="numeric"/>
+       <column-type db="mysql" type="tinyint"/>
+    </column>
+    
+    
+  
+			<primary-key name="das_gsa_dyn_type_p">
+      <index-column column="id" order="asc" seq="1"/>
+    	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+			<index name="das_gsa_dyn_ty_wsx" table="das_gsa_dyn_type">
+				 <index-column column="workspace_id" order="asc" seq="1"/>
+			</index>
+			<index name="das_gsa_dyn_ty_cix" table="das_gsa_dyn_type">
+				 <index-column column="checkin_date" order="asc" seq="1"/>
+			</index>
+	 </table>
+
+  
+	 <table name="das_gsa_dyn_type_attr" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Atribute key" i18n="n" name="attribute_key" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Attribute value" i18n="n" name="attribute_value" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    
+  
+			<primary-key name="das_gsa_dyn_type_attr_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="attribute_key" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+
+  
+	 <table name="das_gsa_dyn_prop" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="workspace_id" nullable="n" description="the id of the workspace that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="branch_id" nullable="n" description="the id of the branch that the asset exists on">
+				 <column-type db="generic" type="varchar" length="40"/>
+			</column>
+			<column name="is_head" nullable="n" description="is this version the head of branch">
+				 <column-type db="generic" type="one-digit"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_deleted" nullable="n" description="flag indicating that the version is deleted">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="version_editable" nullable="n" description="flag indicating that version is editable">
+				 <column-type db="generic" type="numeric" length="1"/>
+				 <column-type db="mysql" type="tinyint"/>
+			</column>
+			<column name="pred_version" nullable="y" description="the predecessor version number">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+			<column name="checkin_date" nullable="y" description="date the asset was checked in if not a working version">
+				 <column-type db="generic" type="datetime"/>
+				 <column-type db="oracle" type="timestamp"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Property name for dynamic property" i18n="n" name="property_name" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Item descriptor name" i18n="n" name="item_descriptor" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Repository name" i18n="n" name="repository" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="datatype value" i18n="n" name="data_type" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="backing_map value" i18n="n" name="backing_map" nullable="y">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>    
+    <column default="" description="If this property is removed" i18n="n" name="removed" nullable="y">
+       <column-type db="generic" length="1" type="numeric"/>
+       <column-type db="mysql" type="tinyint"/>
+    </column>
+    
+    
+  
+			<primary-key name="das_gsa_dyn_prop_p">
+      <index-column column="id" order="asc" seq="1"/>
+    	 <index-column column="asset_version" order="asc" seq="2"/>
+			</primary-key>
+			<index name="das_gsa_dyn_pr_wsx" table="das_gsa_dyn_prop">
+				 <index-column column="workspace_id" order="asc" seq="1"/>
+			</index>
+			<index name="das_gsa_dyn_pr_cix" table="das_gsa_dyn_prop">
+				 <index-column column="checkin_date" order="asc" seq="1"/>
+			</index>
+	 </table>
+
+  
+	 <table name="das_gsa_dyn_prop_enum" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Enumeration Values" i18n="n" name="enumeration_values" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    <column default="" description="Enumeration number" i18n="n" name="enumeration_value_num" nullable="n">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    
+  
+			<primary-key name="das_gsa_dyn_prop_enum_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="enumeration_values" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+
+  
+	 <table name="das_gsa_dyn_prop_eorder" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Sequence number" i18n="n" name="seq_num" nullable="n">
+      <column-type db="generic" type="integer"/>
+    </column>
+   
+    <column default="" description="Enumeration Order" i18n="n" name="enumeration_order" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    
+  
+			<primary-key name="das_gsa_dyn_prop_eorder_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="seq_num" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+
+  
+	 <table name="das_gsa_dyn_prop_attr" description="">
+			<!-- Versioning Columns -->
+			<column name="asset_version" nullable="n" description="the version of the asset">
+				 <column-type db="generic" type="numeric" length="19"/>
+				 <column-type db="mysql" type="bigint"/>
+			</column>
+
+			<!-- Data Columns -->
+    
+    <column default="" description="" i18n="n" name="id" nullable="n">
+      <column-type db="generic" length="40" type="varchar"/>
+    </column>
+    
+    <column default="" description="Attribute key" i18n="n" name="attribute_key" nullable="n">
+   <column-type db="generic" length="254" type="varchar"/>
+    </column>
+   
+    <column default="" description="Attribute value" i18n="n" name="attribute_value" nullable="n">
+      <column-type db="generic" length="254" type="varchar"/>
+    </column>
+    
+    
+   
+			<primary-key name="das_gsa_dyn_prop_attr_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="attribute_key" order="asc" seq="2"/>
+    	 <index-column column="asset_version" order="asc" seq="3"/>
+			</primary-key>
+	 </table>
+</schema><!-- @version $Id: //product/DAS/version/11.2/templates/DAS/sql/dynamic_metadata_ddl.xml#1 $Change:$-->

@@ -1,0 +1,7 @@
+-- Uncomment the following if using custom user
+
+-- @@DYNAMO_ROOT@/@MODULE_NAME@/sql/@DATABASE_TYPE@/db_components/crs_order_ddl.sql
+-- @@DYNAMO_ROOT@/@MODULE_NAME@/sql/@DATABASE_TYPE@/db_components/crs_profile_ddl.sql
+-- @@DYNAMO_ROOT@/@MODULE_NAME@/sql/@DATABASE_TYPE@/db_components/store_ddl.sql
+-- @@DYNAMO_ROOT@/@MODULE_NAME@/sql/@DATABASE_TYPE@/db_components/mobile_store_ddl.sql
+-- @@DYNAMO_ROOT@/@MODULE_NAME@/sql/@DATABASE_TYPE@/db_components/storetext_ddl.sql

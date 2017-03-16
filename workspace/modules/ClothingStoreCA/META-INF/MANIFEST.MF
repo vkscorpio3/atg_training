@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+ATG-Product: Boot Camp Reference Module - Versioned Repository and Merchandising Extensions
+ATG-Client-Class-Path: lib/classes.jar
+ATG-Class-Path: lib/classes.jar
+ATG-Config-Path: config/config.jar
+ATG-Required: DCS.DynamicCustomCatalogs.Versioned DCS-UI BCC.InternalUsers DCS-UI.Versioned PubPortlet DSS.InternalUsers.ACC DCS-UI.SiteAdmin.Versioned ClothingStore 
+ATG-Required-If-Present: SiteAdmin.Versioned 
+Name: lib/classes.jar
+ATG-Client-Update-File: true
+ATG-Web-Module: j2ee-apps/store-merchandising.war

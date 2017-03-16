@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="store" default="all" basedir=".">
+
+	<property environment="env" />
+	<!-- set global defaults  -->
+
+	<!-- global.dir is used to resolve dev environment resources such as 
+         checkstyle libraries, custom ant tasks, etc..  Essentially stuff 
+         we don't want to stick directly into our module structure. In this 
+         framework the global directory is the /modules directory. -->
+	<property name="global.dir" value=".." />
+	
+	<!-- Common dir identifies the location of the common ant tasks that all 
+         submodules import for use or overriding -->
+	<property name="common.dir" value="${global.dir}" />
+	<property file="${common.dir}/${user.name}.properties" />
+	<property file="${common.dir}/common.properties" />
+	<property file="${user.name}.properties" />
+	<property file="build.properties" />
+
+	<!-- Import common tasks -->
+	<import file="${common.dir}/common.xml" />
+	<import file="${common.dir}/${deploy.definition.file}" />
+	<import file="${common.dir}/sql.xml" />
+
+	<!-- Define the all task.  We do this here because we need to call tasks imported 
+         in both the common.xml and deploy.xml files.  This may seem a bit odd but it
+         feels better to segregate common tasks from j2ee deployment tasks and add 
+         this extra bit of layering than have one massive common task file which has
+         buttloads of targets, making it difficult to read.  You get my point separating
+         the tasks in multiple imports makes this complex environment easier to get 
+         around.  -->
+	<target name="all" depends="clean,build,reports,install,deploy" description="Cleans, builds, checks and installs the project." >
+		<!--<subant buildpath="fulfillment"  target="all">
+			<property name="skip.run.assembler" value="true" />
+		</subant>-->
+	</target>
+
+	<!-- Define the Update task.  Done here for the same reason the All task was.
+	     See above comment. 
+	-->
+	<target name="update" depends="build,install,devdeploy" description="Developer centric task to deploy code and JSP faster" />
+
+	<!-- Creates the modules tables. -->
+	<target name="createtables" description="Creates All ATG Tables">
+		<!-- Core ATG Tables -->
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.core}" />
+		</ant>
+
+		<!-- Commerce catalog tables -->
+		<ant target="-performcatalogsql">
+			<property name="sql.ddl.file" value="${sql.install.atg.catalog}" />
+		</ant>
+
+		<!-- Commerce user tables -->
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.commerceuser}" />
+		</ant>
+
+		<!-- Grant commerce privileges -->
+		<!--
+		<ant target="-performcatalogsql">
+			<property name="sql.ddl.file" value="${sql.install.atg.privileges}" />
+		</ant>
+		-->
+
+		<!-- Commerce reporting tables -->
+		<!--
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.reports1}" />
+		</ant>
+
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.reports2}" />
+		</ant>
+
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.reports3}" />
+		</ant>
+
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.install.atg.reports4}" />
+		</ant>
+		-->
+
+		<!-- Project specific Tables -->	
+
+	</target>
+
+
+
+	<target name="droptables" description="Drops All ATG Tables">
+		<!-- Commerce catalog tables -->
+		<ant target="-performcatalogsql">
+			<property name="sql.ddl.file" value="${sql.uninstall.alltables}" />
+		</ant>
+
+		<!-- Core ATG Tables -->
+		<ant target="-performcoresql">
+			<property name="sql.ddl.file" value="${sql.uninstall.alltables}" />
+		</ant>
+
+		<delete file="DELETE_ME.SQL" failonerror="false" verbose="true" />
+
+	</target>
+
+	<target name="post-assemble" description="Expending for overwriting after assemble" />
+	
+</project>
+

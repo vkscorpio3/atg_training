@@ -1,0 +1,164 @@
+<!DOCTYPE schema SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="dynamic_metadata_ddl"
+  description="Tables for the Dynamic Metadata repository">
+  <comment>
+    @version$Id: //product/DAS/version/11.2/templates/DAS/sql/dynamic_metadata_ddl.xml#1 $
+  </comment>
+
+  <comment>Tables for Dynamic Repository Metadata storage</comment>
+  <table name="das_gsa_dyn_type">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- type name  -->
+    <column name="type_name" description="Type name for dynamic type item descriptor">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- item_descriptor  -->
+    <column name="item_descriptor" description="Item descriptor name">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- roo_item_descriptor  -->
+    <column name="root_item_descriptor" description="Root item descriptor name">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- repository -->
+    <column name="repository" description="Repository name">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- sub_type_value-->
+    <column name="sub_type_value" description="Subtype value">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- sub_type_num-->
+    <column name="sub_type_num" description="Subtype number">
+      <column-type db="generic" type="integer"/>
+    </column>
+    
+    <column name="removed" description="If this item is removed">
+       <column-type db="generic" type="numeric" length="1"/>
+       <column-type db="mysql" type="tinyint"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_type_p">
+      <index-column column="id" order="asc" seq="1"/>
+    </primary-key>
+  </table>
+
+  <table name="das_gsa_dyn_type_attr">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- attribute_key  -->
+    <column name="attribute_key" nullable="n" description="Atribute key">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- attribute_value  -->
+    <column name="attribute_value" nullable="n" description="Attribute value">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_type_attr_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="attribute_key" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_gsa_dyn_prop">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- property name  -->
+    <column name="property_name" nullable="n" description="Property name for dynamic property">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- item_descriptor  -->
+    <column name="item_descriptor" description="Item descriptor name">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- repository -->
+    <column name="repository" description="Repository name">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- sub_type_value-->
+    <column name="data_type" description="datatype value">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- backing_map-->
+    <column name="backing_map" description="backing_map value">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>    
+    <column name="removed" description="If this property is removed">
+       <column-type db="generic" type="numeric" length="1"/>
+       <column-type db="mysql" type="tinyint"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_prop_p">
+      <index-column column="id" order="asc" seq="1"/>
+    </primary-key>
+  </table>
+
+  <table name="das_gsa_dyn_prop_enum">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- enumeration_values  -->
+    <column name="enumeration_values" nullable="n" description="Enumeration Values">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!-- enumeration_value_num  -->
+    <column name="enumeration_value_num" nullable="n" description="Enumeration number">
+      <column-type db="generic" type="integer"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_prop_enum_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="enumeration_values" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_gsa_dyn_prop_eorder">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- seq_num  -->
+    <column name="seq_num" nullable="n" description="Sequence number">
+      <column-type db="generic" type="integer"/>
+    </column>
+   <!-- enumeration_order -->
+    <column name="enumeration_order" nullable="n" description="Enumeration Order">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_prop_eorder_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="seq_num" order="asc" seq="2"/>
+    </primary-key>
+  </table>
+
+  <table name="das_gsa_dyn_prop_attr">
+    <!-- Id -->
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <!-- attribute_key  -->
+    <column name="attribute_key" nullable="n" description="Attribute key">
+   <column-type db="generic" type="varchar" length="254"/>
+    </column>
+   <!-- attribute_value -->
+    <column name="attribute_value" nullable="n" description="Attribute value">
+      <column-type db="generic" type="varchar" length="254"/>
+    </column>
+    <!--  Primary key -->
+    <primary-key name="das_gsa_dyn_prop_attr_p">
+      <index-column column="id" order="asc" seq="1"/>
+      <index-column column="attribute_key" order="asc" seq="2"/>
+    </primary-key>
+   </table>
+</schema>
+<!-- @version $Id: //product/DAS/version/11.2/templates/DAS/sql/dynamic_metadata_ddl.xml#1 $Change:$-->
