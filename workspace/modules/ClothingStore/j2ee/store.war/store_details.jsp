@@ -8,20 +8,16 @@
 <body>
 	<div>
 		<p>Details of the Store</p>
-		<%-- <dsp:droplet name="/atg/dynamo/droplet/ItemLookupDroplet">
-			<dsp:param name="id" param="storeID" />
-			<dsp:param name="repository" value="/clothing/store/StoreRepository" />
-			<dsp:param name="itemDescriptor" value="BricsMorter" />
-
-			<dsp:oparam name="output">
-				<dsp:tomap var="item" param="element" recursive="false" />
-				<b>Store Name: ${item.storeName }</b>
-			</dsp:oparam>
-			<p>--End--</p>
-		</dsp:droplet> --%>
-		
 		<dsp:droplet name="clothing/store/StoreLookup">
 			<dsp:param name="id" param="storeID" />
+			<dsp:oparam name="output">
+			Store Name:	<dsp:valueof param="element.storeName" />
+				</br>
+			Store Number: <dsp:valueof param="element.storeNumber" />
+				</br>
+			Store Size: <dsp:valueof param="element.storeSize" />
+				</br>
+			</dsp:oparam>
 		</dsp:droplet>
 	</div>
 </body>
