@@ -8,7 +8,7 @@
 <body>
 	<div>
 		<p>Details of the Store</p>
-		<dsp:droplet name="/atg/dynamo/droplet/ItemLookupDroplet">
+		<%-- <dsp:droplet name="/atg/dynamo/droplet/ItemLookupDroplet">
 			<dsp:param name="id" param="storeID" />
 			<dsp:param name="repository" value="/clothing/store/StoreRepository" />
 			<dsp:param name="itemDescriptor" value="BricsMorter" />
@@ -18,6 +18,10 @@
 				<b>Store Name: ${item.storeName }</b>
 			</dsp:oparam>
 			<p>--End--</p>
+		</dsp:droplet> --%>
+		
+		<dsp:droplet name="clothing/store/StoreLookup">
+			<dsp:param name="id" param="storeID" />
 		</dsp:droplet>
 	</div>
 </body>
