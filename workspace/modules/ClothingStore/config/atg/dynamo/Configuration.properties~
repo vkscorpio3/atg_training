@@ -1,0 +1,12 @@
+# /atg/dynamo/Configuration
+#Wed Feb 01 15:03:09 CST 2012
+adminPort=7003
+defaultDynamoPrefix=
+dispatcherServiceMap=/exittracking.dyn\=servlet/pipeline/ExitTracking,/null-request\=servlet/pipeline/NullServlet
+emailHandlerHost=crs.taiken.com
+siteHttpServerName=crs.taiken.com
+siteHttpServerPort=7003
+
+rmiPort=8160
+fileDeploymentPort=8810
+drpPort=8850

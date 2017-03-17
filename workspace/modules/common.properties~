@@ -1,0 +1,298 @@
+# ---------------------------------------------------------------------------------
+# Dynamo enviroment properties.  Recommended that you set DYNAMO_HOME AND DAS_ROOT
+# as environment properties for your OS.  Or you can set things here...
+#
+dynamo.home=D:/ATG/ATG10.0.2/home
+dynamo.root.dir=${dynamo.home}/..
+
+
+# ---------------------------------------------------------------------------------
+# This sets the order in which submodules are called when calling a main task 
+# such as 'all', 'build', etc...  Note the reverse must also be declared to support
+# such tasks as sql drops and creates.
+# 
+#modules.build.order=store/build.xml,env/dev/build.xml
+#reverse.build.order=env/dev/build.xml,store/build.xml
+modules.build.order=ClothingStore/build.xml
+reverse.build.order=ClothingStore/build.xml
+
+# ---------------------------------------------------------------------------------
+# Default database properties.  These are for use by engineers who are running
+# their own database schemas or responsible for environment databases.  
+# These are used by the createtables, droptables, and inittables tasks
+#
+database.type=oracle
+
+# ATG Schemas for Commerce
+jdbc.cataloga.user=ATGCATA_CLOTHING
+jdbc.cataloga.password=ATGCATA_CLOTHING
+jdbc.catalogb.user=ATGCATB_CLOTHING
+jdbc.catalogb.password=ATGCATB_CLOTHING
+jdbc.core.user=ATGCORE_CLOTHING
+jdbc.core.password=ATGCORE_CLOTHING
+
+# CA schemas
+jdbc.pubcore.user=ATGPUB_CLOTHING
+jdbc.pubcore.password=ATGPUB_CLOTHING
+jdbc.pubcatalog.user=ATGPUB_CLOTHING
+jdbc.pubcatalog.password=ATGPUB_CLOTHING
+
+# SVC schemas
+jdbc.svcagent.user=ATGAGENT_CLOTHING
+jdbc.svcagent.password=ATGAGENT_CLOTHING
+jdbc.svcadmin.user=ATGCORE_CLOTHING
+jdbc.svcadmin.password=ATGCORE_CLOTHING
+
+
+# this is the SID if you are on oracle don't let the term jdbc.hostname fool you
+#
+jdbc.hostname=XE
+
+
+# ---------------------------------------------------------------------------------
+# Identifies the installation root for the Project.  All the applications 
+# constructed for the project are loaded into this installation directory.
+# This installation directory identifies itself as an ATG-Install-Unit which allows
+# any modules within it to require ATG modules from different installation roots.
+# For example, the ATG CampaignOptimizer product is a separate install unit.
+#  
+# Having a separate installation root for this project allows us to keep all 
+# custom application modules together and still maintain references to modules 
+# within other ATG install units.
+#
+default.install.unit=
+
+
+# ---------------------------------------------------------------------------------
+# Location of any server specific configuration that should be deployed
+#
+global.server.dir=../servers
+
+
+#----------------------------------------------------------------------------------
+# Tells the clean task to exclude compiled jsps from deletion
+# Comment this out if you want it to clean them too
+# 
+clean.task.excludes=**/jspbuild/**
+
+#----------------------------------------------------------------------------------
+# Indicates whether or not the classes and configuration files should be installed
+# in exploded or jarred format
+# 
+jar.configs.and.classes=true
+
+# ---------------------------------------------------------------------------------
+# This is the directory the ANT task menu will used to write the javadocs
+# for all defined submodules 
+# 
+# This should be overridden to match your local environment needs.
+#
+global.javadoc.dir=../doc/javadoc
+
+# Javadoc external references
+#
+jdk.docs.dir=${jdk.home}/docs/api
+dynamo.docs.dir=${dynamo.root.dir}/manuals/dynamo/apidoc
+
+
+
+# ---------------------------------------------------------------------------------
+# base directory for development specific configuration files
+# such as code check tools checkstyle and pmd.  Note the directory setting is a bit 
+# counter-intuitive.  This is because checkstlye, pmd, and jalopy are all run
+# from the sub-modules and not this main module.
+#
+global.etc.dir=${global.dir}/../etc
+
+# Checkstyle settings
+# checkstlye.home is the directory where your checkstyle libraries are stored
+# defining checkstlye.on will run checkstyle regardless of true/false value
+#
+checkstyle.home=${env.CHECKSTYLE_HOME}
+checkstyle.on=false
+checkstyle.lib.dir=${checkstyle.home}
+checkstyle.rules.set=${global.etc.dir}/checkstyle/checks.xml
+
+
+# PMD Settings
+# pmd.home is the directory where your pmd libraries are stored
+# defining pmd.on will run checkstyle regardless of true/false value
+#
+pmd.home=${env.PMD_HOME}
+pmd.on=false
+pmd.lib.dir=${pmd.home}/lib
+pmd.rules.dir=${global.etc.dir}/pmd
+pmd.rulesets=standard_rules.xml,atg_rules.xml
+pmd.printToConsole=true
+pmd.failOnRuleViolation=true
+
+
+# jalopy.home is the directory where your jalopy libraries are stored
+#
+jalopy.home=${env.JALOPY_HOME}
+jalopy.rules.dir=${global.etc.dir}/jalopy
+
+
+# ---------------------------------------------------------------------------------
+# Executables
+#
+# Sqlplus.  Why sqlplus instead of ANT's sql task?  Well for one sqlplus doesn't
+# barf when it has to run a ddl file which mixes both stored procedures and table 
+# creation.  The other reason is this allows the project to use sql statements
+# fit for DBAs.
+#
+# For windows consider sqlplusw if you are having issues with sql statements that 
+# relate to I18N
+#
+# sqlplus.win.cmd=sqlplusw
+sqlplus.win.cmd=sqlplus
+sqlplus.unix.cmd=sqlplus
+
+# ATG's Darina command to create J2EE applications
+#
+rundarina.win.cmd=${dynamo.home}/bin/runDarina.bat
+rundarina.unix.cmd=${dynamo.home}/bin/runDarina
+
+
+# ********************************************************************************
+# ********************************************************************************
+#
+# Common values used by sub modules
+#
+# ********************************************************************************
+# ********************************************************************************
+
+
+# ---------------------------------------------------------------------------------
+# Basic directory settings that identify common directory structures in each
+# submodule
+#
+src.dir=${basedir}/src
+etc.dir=${basedir}/etc
+config.dir=${basedir}/config
+liveconfig.dir=${basedir}/liveconfig
+inf.dir=${basedir}/META-INF
+lib.dir=${basedir}/lib
+sql.dir=${basedir}/sql
+j2ee.dir=${basedir}/j2ee
+test.dir=${basedir}/test
+test.lib.dir=${test.dir}/lib
+test.src.dir=${test.dir}/src
+
+# ---------------------------------------------------------------------------------
+# Basic directory settings that identify the build directory structures for each
+# submodule
+#
+build.dir=${basedir}/build
+build.tempconfig.dir=${build.dir}/tempconfig
+build.config.dir=${build.dir}/config
+javadoc.dir=${build.dir}/javadoc
+classes.dir=${build.dir}/classes
+testclasses.dir=${build.dir}/testclasses
+reports.dir=${build.dir}/reports
+ear.dir=${build.dir}/ear
+javadoc.dir=${build.dir}/javadoc
+
+
+# ********************************************************************************
+# ********************************************************************************
+#
+# Other Tools and Features
+#
+# ********************************************************************************
+# ********************************************************************************
+
+
+# ---------------------------------------------------------------------------------
+# Settings for Building Webservice Client Stubs
+#
+
+# The Apache Axis library for generating web service skeletons and stubs
+# This can be obtained from http://ws.apache.org/.  However, it is highly 
+# recommended that  you use the axis version that ships with ATG.  ATG 
+# provides additional facilities based explicitly upon its chosen Axis version.  
+# These include ATG's Web Service security implemenation which is dependent 
+# upon ATG's chosen access version.  Without the ATG axis implementation 
+# you will not be able to share session across ATG web services.
+#
+# To recap - if you do not use ATG's axis libraries then you lose the ability 
+# to share session across ATG Web Services.  In addition you lose ATG's 
+# web service security mechanism (which uses ATG's Access Control Lists)
+#
+# Now that you've read this you have the information necessary to select 
+# an axis version.  Set the axis.lib.dir to point this its location.
+#
+# Note that the axis-ant tasks included with this framework may not be 
+# compatible with your chosen version.  Be sure to doublecheck the version
+# of axis-ant.jar in the ${global.dir}/../lib directory.
+#
+#
+# axis.lib.dir=${global.dir}/../etc/axis-1_2_1/lib
+#axis.lib.dir=${dynamo.root.dir}/DAS/lib
+
+# the place to store generated source stubs.  This is where we will store both 
+# the webservice stub source and compiled class files
+#
+webservice.stubs.dir=${build.dir}/wsstubs
+
+
+
+# ---------------------------------------------------------------------------------
+# J2EE Build and deployment settings
+#
+
+# Define here which deployment definitions to use for the deploy task
+# these are:
+#
+# deploy-das.xml:      This definition supplies deploy tasks for J2EE deployment on DAS
+# deploy-jboss.xml:    This definition supplies deploy tasks for J2EE deployment on JBoss
+# deploy-weblogic.xml: This definition supplies deploy tasks for J2EE deploymet on Weblogic
+#
+default.deploy.definition.file=deploy-jboss.xml
+
+
+# Tells the deploy steps to strip J2EE whitespace as a predeployment task
+#
+strip.j2ee.whitespace=false
+
+# Uncommenting this tells the deploy steps to precompile the JSPs.  
+# Commented out here because most development tasks won't want this.  
+# This is useful only when creating a build for release.
+# 
+# darina.precompile.arg=-jsp-compile
+
+
+# ---------------------------------------------------------------------------------
+# Additional J2EE build and deployment settings when using another application
+# server (other than DAS)
+#
+
+# this is used for the development deployment step "ANT devdeploy" and indentifies
+# where the devdeploy task should copy the .ear file
+# The default will be to put it in $DYNAMO_HOME, override in username.properties.
+#
+#application.ear.install.dir=D:/jboss-5.1.0.GA-jdk6/jboss-5.1.0.GA/server/store/deploy
+
+
+# ---------------------------------------------------------------------------------
+# Test Frameworks
+#
+
+# Cactus
+cactus.contextURL=http://localhost:8080/estore
+cactus.servletRedirectorName=ServletRedirector.jsp          
+
+
+# ---------------------------------------------------------------------------------
+# Release Management (Application Packaging) settings
+#
+
+# Define here which packaging definition to use for the package-full task
+# these are:
+#
+# package-das.xml:      This definition supplies packaging tasks for release to DAS
+# package-jboss.xml:    This definition supplies packaging tasks for release to JBoss
+# package-weblogic.xml: This definition supplies packaging tasks for release on Weblogic
+#
+package.definition.file=package-jboss.xml
+

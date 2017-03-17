@@ -1,0 +1,31 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="usage_tracking_ddl">
+<comment><![CDATA[ @version $Id: //product/DAS/version/11.2/templates/DAS/sql/usage_tracking_ddl.xml#1 $$Change: 946917 $]]></comment>
+<comment><![CDATA[
+This file contains create table statements, which will configure
+your database for usage tracking
+]]></comment>
+
+ <table name="das_usage_metric">
+  <column name="usage_metric_id" nullable="n">
+    <column-type db="generic" type="bigint"/>
+  </column>
+  <column name="server_identifier" nullable="n">
+    <column-type db="generic" type="varchar" length="100"/>
+  </column>
+  <column name="usage_date" nullable="n">
+    <column-type db="generic" type="timestamp"/>
+  </column>
+  <column name="usage_hour_of_day" nullable="n">
+    <column-type db="generic" type="tinyint"/>
+  </column>
+  <column name="usage_value" nullable="n" default="0">
+    <column-type db="generic" type="integer"/>
+  </column>
+  <primary-key name="das_usage_metric_p">
+    <index-column column="usage_metric_id"/>
+  </primary-key>
+</table>
+
+</schema>
+<!-- @version $Id: //product/DAS/version/11.2/templates/DAS/sql/usage_tracking_ddl.xml#1 $$Change: 946917 $-->

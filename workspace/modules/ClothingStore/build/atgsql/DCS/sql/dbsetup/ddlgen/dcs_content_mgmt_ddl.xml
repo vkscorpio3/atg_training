@@ -1,0 +1,110 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="content_mgmt_ddl">
+<comment><![CDATA[ @version $Id: //product/DCS/version/11.2/templates/DCS/sql/dcs_content_mgmt_ddl.xml#1 $$Change: 953229 $]]></comment>
+<comment><![CDATA[
+This file contains create table statements, which will configure 
+your database for use with the Content Management schema.
+]]></comment>
+
+
+  <table name="dcs_wcm_media_rltd_prod">
+    <column name="media_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="sequence_num" nullable="n">
+       <column-type db="generic" type="integer"/>
+       <column-type db="oracle" type="integer"/>
+    </column>
+    <column name="related_product_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <primary-key name="wcm_media_rltd_product_p">
+       <index-column column="media_id" order="asc" seq="1"/>
+       <index-column column="sequence_num" order="asc" seq="2"/>
+    </primary-key>
+    <foreign-key name="wcm_media_rltd_product1_f" referenced-table="wcm_media_content">
+       <fkey-column referencing-column="media_id" referenced-column="id"/>
+    </foreign-key>
+    <foreign-key name="wcm_media_rltd_product2_f" referenced-table="dcs_product" index-name="wcm_media_rltd_product_idx">
+       <fkey-column referencing-column="related_product_id" referenced-column="product_id"/>
+    </foreign-key>
+  </table>
+  
+      
+  <table name="dcs_wcm_media_rltd_ctgy">
+    <column name="media_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="sequence_num" nullable="n">
+       <column-type db="generic" type="integer"/>
+       <column-type db="oracle" type="integer"/>
+    </column>
+    <column name="related_category_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <primary-key name="wcm_media_rltd_category_p">
+       <index-column column="media_id" order="asc" seq="1"/>
+       <index-column column="sequence_num" order="asc" seq="2"/>
+    </primary-key>
+    <foreign-key name="wcm_media_rltd_category1_f" referenced-table="wcm_media_content">
+       <fkey-column referencing-column="media_id" referenced-column="id"/>
+    </foreign-key>
+    <foreign-key name="wcm_media_rltd_category_f" referenced-table="dcs_category" index-name="wcm_media_rltd_category_idx">
+       <fkey-column referencing-column="related_category_id" referenced-column="category_id"/>
+    </foreign-key>
+  </table>
+  
+  
+  
+  <table name="dcs_wcm_article_rltd_prod">
+    <column name="article_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="sequence_num" nullable="n">
+       <column-type db="generic" type="integer"/>
+       <column-type db="oracle" type="integer"/>
+    </column>
+    <column name="related_product_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <primary-key name="wcm_article_rltd_product_p">
+       <index-column column="article_id" order="asc" seq="1"/>
+       <index-column column="sequence_num" order="asc" seq="2"/>
+    </primary-key>
+    <foreign-key name="wcm_article_rltd_product1_f" referenced-table="wcm_article">
+       <fkey-column referencing-column="article_id" referenced-column="id"/>
+    </foreign-key>
+    <foreign-key name="wcm_article_rltd_product2_f" referenced-table="dcs_product" index-name="wcm_article_rltd_product_idx">
+       <fkey-column referencing-column="related_product_id" referenced-column="product_id"/>
+    </foreign-key>
+  </table>
+  
+  
+  <table name="dcs_wcm_article_rltd_ctgy">
+    <column name="article_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <column name="sequence_num" nullable="n">
+       <column-type db="generic" type="integer"/>
+       <column-type db="oracle" type="integer"/>
+    </column>
+    <column name="related_category_id" nullable="n">
+       <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    <primary-key name="wcm_article_rltd_category_p">
+       <index-column column="article_id" order="asc" seq="1"/>
+       <index-column column="sequence_num" order="asc" seq="2"/>
+    </primary-key>
+    <foreign-key name="wcm_article_rltd_category1_f" referenced-table="wcm_article">
+       <fkey-column referencing-column="article_id" referenced-column="id"/>
+    </foreign-key>
+    <foreign-key name="wcm_article_rltd_category2_f" referenced-table="dcs_category" index-name="wcm_article_rltd_category_idx">
+       <fkey-column referencing-column="related_category_id" referenced-column="category_id"/>
+    </foreign-key>
+  </table>
+  
+
+  
+  </schema>
+
+<!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/dcs_content_mgmt_ddl.xml#1 $$Change: 953229 $ -->

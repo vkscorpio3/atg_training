@@ -1,0 +1,11 @@
+rmiEnabled=true
+rmiPort=8161
+siteHttpServerPort=7103
+httpPort=7103
+drpPort=8851
+httpsPort=8444
+iiopPort=8243
+iiopPersistentSSLPort=8223
+cmPacketServerPort=8881
+httpsEnabled=false
+fileDeploymentPort=8811

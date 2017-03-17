@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+ATG-Product: Boot Camp Reference Module
+ATG-Config-Path: config/config.jar
+ATG-LiveConfig-Path: liveconfig
+ATG-Web-Module: j2ee-apps/store.war 
+ATG-Client-Class-Path: lib/classes.jar 
+ATG-Class-Path: lib/classes.jar
+ATG-Required: DCS.CustomCatalogs DCS.PublishingAgent WebUI DCSSampleCatalog
+Name: lib/classes.jar
+ATG-Client-Update-File: true
+ATG-Version: 0.1
+

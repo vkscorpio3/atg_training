@@ -1,0 +1,169 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="location_ddl">
+<comment><![CDATA[ @version $Id: //product/DCS/version/11.2/templates/DCS/sql/location_ddl.xml#2 $$Change: 953229 $]]></comment>
+   <table name="dcs_location">
+      <column name="location_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="ext_loc_id" nullable="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="type" nullable="n">
+         <column-type db="generic" type="integer"/>
+      </column>
+      <column name="version" nullable="n">
+         <column-type db="generic" type="integer"/>
+      </column>
+      <column name="name" nullable="y">
+         <column-type db="generic" type="varchar" length="254"/>
+      </column>
+      <column name="start_date" nullable="y">
+         <column-type db="generic" type="datetime"/>
+      </column>
+      <column name="end_date" nullable="y">
+         <column-type db="generic" type="datetime"/>
+      </column>
+      <column name="latitude" nullable="n">
+         <column-type db="generic" length="19" scale="7" type="numeric"/>
+      </column>
+      <column name="longitude" nullable="n">
+         <column-type db="generic" length="19" scale="7" type="numeric"/>
+      </column>
+      <primary-key name="dcs_location_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      </primary-key>
+    </table>
+    <table name="dcs_location_sites">
+      <column name="location_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="site_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="dcs_location_sites_pk">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="site_id" order="asc" seq="2"/>
+      </primary-key>
+      <index name="location_site_id_idx" table="dcs_location_sites">
+        <index-column column="site_id" order="asc" seq="1"/>
+      </index>
+    </table>
+    <table name="dcs_loc_site_grps">
+      <column name="location_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="site_group_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="dcs_loc_sgrps_pk">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="site_group_id" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="dcs_loc_sgrps1_d_f" referenced-table="dcs_location">
+         <fkey-column referencing-column="location_id" referenced-column="location_id"/>
+      </foreign-key>
+      <foreign-key name="dcs_loc_sgrps2_d_f" referenced-table="site_group" index-name="dcs_loc_sgrps2_x">
+         <fkey-column referencing-column="site_group_id" referenced-column="id"/>
+      </foreign-key>
+    </table>
+    <table name="dcs_location_store">
+      <column name="location_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="hours" nullable="y">
+         <column-type db="generic" type="varchar" length="64"/>
+      </column>
+      <primary-key name="dcs_loc_store_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      </primary-key>
+    </table>
+    <table name="dcs_location_addr">
+      <column name="location_id" nullable="n">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="address_1" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="50"/>
+      </column>
+      <column name="address_2" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="50"/>
+      </column>
+      <column name="address_3" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="50"/>
+      </column>
+      <column name="city" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="county" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="state_addr" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="postal_code" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="10"/>
+      </column>
+      <column name="country" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="phone_number" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="fax_number" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="email" nullable="y" i18n="y">
+         <column-type db="generic" type="varchar" length="255"/>
+      </column>
+      <primary-key name="dcspp_loc_addr_p">
+         <index-column column="location_id" order="asc" seq="1"/>
+      </primary-key>
+      <foreign-key name="dcspp_loc_addr_f" referenced-table="dcs_location">
+         <fkey-column referencing-column="location_id" referenced-column="location_id"/>
+      </foreign-key>
+    </table>
+    <table name="dcs_location_rltd_media">
+      <column name="location_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="sequence_num" nullable="n">
+        <column-type db="generic" type="integer"/>
+        <column-type db="oracle" type="integer"/>
+      </column>
+      <column name="related_media_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="dcs_location_rltd_media_p">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="sequence_num" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="dcs_location_rltd_media1_f" referenced-table="dcs_location">
+        <fkey-column referencing-column="location_id" referenced-column="location_id"/>
+      </foreign-key>    
+      <foreign-key name="dcs_location_rltd_media2_f" referenced-table="wcm_media_content"  index-name="dcs_location_rltd_media_idx">
+        <fkey-column referencing-column="related_media_id" referenced-column="id"/>
+      </foreign-key>
+    </table>
+    <table name="dcs_location_rltd_article">
+      <column name="location_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <column name="sequence_num" nullable="n">
+        <column-type db="generic" type="integer"/>
+        <column-type db="oracle" type="integer"/>
+      </column>
+      <column name="related_article_id" nullable="n">
+        <column-type db="generic" type="varchar" length="40"/>
+      </column>
+      <primary-key name="dcs_location_rltd_article_p">
+        <index-column column="location_id" order="asc" seq="1"/>
+        <index-column column="sequence_num" order="asc" seq="2"/>
+      </primary-key>
+      <foreign-key name="dcs_location_rltd_article1_f" referenced-table="dcs_location">
+        <fkey-column referencing-column="location_id" referenced-column="location_id"/>
+      </foreign-key>    
+      <foreign-key name="dcs_location_rltd_article2_f" referenced-table="wcm_article"  index-name="dcs_location_rltd_article_idx">
+        <fkey-column referencing-column="related_article_id" referenced-column="id"/>
+      </foreign-key>
+    </table>
+    </schema>
+<!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/location_ddl.xml#2 $$Change: 953229 $-->

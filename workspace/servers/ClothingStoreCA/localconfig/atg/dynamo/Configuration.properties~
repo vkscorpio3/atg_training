@@ -1,0 +1,5 @@
+rmiEnabled=true
+rmiPort=8863
+siteHttpServerPort=7103
+httpPort=7103
+adminPort=7103

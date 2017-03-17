@@ -1,0 +1,40 @@
+<!DOCTYPE schema  SYSTEM "dynamosystemresource:/atg/dtds/sql/ddl_1.0.dtd">
+<schema name="commerce_site_ddl" description="Tables for the DCS Custom Catalog site repository">
+<comment><![CDATA[
+This file contains create table statements, which will configure
+your database for use MultiSite
+]]></comment>
+
+  <table name="dcs_site">
+
+    <column name="id" nullable="n">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+
+    <column name="catalog_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    
+    <column name="list_pricelist_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+    
+    <column name="sale_pricelist_id" nullable="y">
+      <column-type db="generic" type="varchar" length="40"/>
+    </column>
+
+    <column name="max_num_coupons" nullable="y">
+       <column-type db="generic" type="integer"/>
+    </column>
+    
+    <column name="max_num_coupons_per_order" nullable="y">
+       <column-type db="generic" type="integer"/>
+    </column>
+    
+    <primary-key name="dcs_site_p">
+      <index-column column="id"/>
+    </primary-key>
+    
+  </table>
+</schema>
+<!-- @version $Id: //product/DCS/version/11.2/templates/DCS/sql/commerce_site_ddl.xml#1 $$Change: 946917 $-->

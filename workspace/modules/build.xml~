@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="modules" default="all" basedir=".">
+
+	<property environment="env" />
+	<!-- global.dir is used to resolve dev environment resources such as 
+         checkstyle libraries, custom ant tasks, etc..  Essentially stuff 
+         we don't want to stick directly into our module structure. -->
+	<property name="global.dir" value="." />
+	<!-- Common dir identifies the location of common ant tasks that all 
+         submodules import for use or overriding -->
+	<property name="common.dir" value="${global.dir}" />
+	<property file="${common.dir}/${user.name}.properties" />
+	<property file="${common.dir}/common.properties" />
+
+	<!--
+      The modules in order of dependency, i.e. the most dependant module is
+      built last.
+    -->
+	<filelist id="module.files" dir="${basedir}" files="${modules.build.order}" />
+
+	<!--
+      The modules in reversed order.
+    -->
+	<filelist id="reversed.module.files" dir="${basedir}" files="${reverse.build.order}" />
+
+	<taskdef name="foreach" classname="net.sf.antcontrib.logic.ForEach" classpath="${global.dir}/../lib/ant-contrib.jar" />
+
+	<!-- The dynamo class path -->
+	<path id="dynamo.classpath">
+		<fileset dir="${dynamo.home}/../DAS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DAS-UI/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DPS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DSS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${dynamo.home}/../DCS/lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="-init" description="displays initialization info">
+		<!-- Create a text list that shows us which modules we are building. -->
+		<pathconvert pathsep=" " dirsep="/" property="module.files.string" refid="module.files">
+			<map from="${basedir}" to="." />
+		</pathconvert>
+		<echo>${module.files.string}</echo>
+	</target>
+
+	<!--
+      Create a quick macro to call all the sub projects so we don't have to
+      repeat ourselves...
+    -->
+	<macrodef name="call-subant">
+		<!-- target is the ant target we want to invoke in the subant task -->
+		<attribute name="target" />
+		<sequential>
+			<subant target="@{target}">
+				<!-- The tasks within the deploy-jboss.xml check for a parameter named
+                     'skip.run.assembler'.  This tells the task invoked at the 
+                     sub module level to assemble the application for a third party 
+                     application server.  When calling the sub modules from here 
+                     we want them to skip that step cause we'll call it when 
+                     we are done calling all the submodules.  So we tell the 
+                     sub module invoked deployment tasks to skip assembly.             
+                -->
+				<property name="skip.run.assembler" value="true" />
+				<filelist refid="module.files" />
+			</subant>
+		</sequential>
+	</macrodef>
+
+
+	<!-- TASKS COMMON TO ALL SUBMODULES -->
+	<target name="all" depends="-init" description="Runs all projects.">
+		<call-subant target="all" />
+
+		<!-- Install any servers -->
+		<antcall target="install-servers" />
+		<!-- Now we invoke the assembler task -->
+		<antcall target="-assemble-ears" />
+		
+		<call-subant target="post-assemble" />
+	</target>
+
+	<target name="clean" depends="-init" description="Cleans all projects.">
+		<call-subant target="clean" />
+	</target>
+
+	<target name="update" depends="-init" description="Developer centric task that calls build, install, and devdeploy.">
+		<call-subant target="update" />
+	</target>
+
+	<target name="build" depends="-init" description="Builds all projects.">
+		<call-subant target="build" />
+	</target>
+
+	<target name="install" depends="-init" description="Installs all projects.">
+		<call-subant target="install" />
+		<!-- Install any server specific configs -->
+		<antcall target="install-servers" />
+	</target>
+
+	<target name="deploy" depends="-init" description="Deploys all projects.">
+		<call-subant target="deploy" />
+		<!-- Now we invoke the assembler task for all the registered ears -->
+		<antcall target="-assemble-ears" />
+	</target>
+
+	<target name="devdeploy" depends="-init" description="Deploys all projects in development mode.">
+		<call-subant target="devdeploy" />
+	</target>
+
+	<target name="inittables" depends="-init,droptables,createtables" description="drops all tables and recreates them">
+	</target>
+
+	<target name="createtables" depends="-init" description="Creates all the tables.">
+		<call-subant target="createtables" />
+	</target>
+
+	<target name="droptables" depends="-init" description="Drops all the tables.">
+		<subant target="droptables">
+			<filelist refid="reversed.module.files" />
+		</subant>
+	</target>
+
+	<target name="junit" depends="-init" description="Runs junit tests on all the projects.">
+		<call-subant target="junit" />
+	</target>
+
+	<target name="format" depends="-init" description="Formats the codebase according to code conventions.">
+		<call-subant target="format" />
+	</target>
+
+	<target name="checkstyle" depends="-init" description="Runs checkstyle on all the projects.">
+		<call-subant target="checkstyle" />
+	</target>
+
+	<target name="pmd" depends="-init" description="Runs PMD on all the projects.">
+		<call-subant target="pmd" />
+	</target>
+
+	<target name="reports" depends="-init" description="Runs all reports on projects.">
+		<call-subant target="reports" />
+	</target>
+
+	<!-- TASKS SPECIFIC TO THE ENTIRE ENVIRONMENT -->
+
+	<target name="-check-server-dir">
+		<available file="${global.server.dir}" property="server.configs.exist" />
+	</target>
+	<target name="install-servers" depends="-check-server-dir" description="Installs any server specific configurations" if="server.configs.exist">
+
+		<echo>Copying server configs from ${global.server.dir} to ${dynamo.home}/servers</echo>
+		<copy todir="${dynamo.home}/servers" verbose="true">
+			<fileset dir="${global.server.dir}">
+				<exclude name="**/_jboss-resources/**" />
+			</fileset>
+		</copy>
+	</target>
+
+
+	<target name="-assemble-ears" description="Loop to runs ATG's application assembler for all the registered ears">
+
+		<foreach list="${ears.to.assemble}" delimiter="," trim="true" param="earprefix" target="-assemble-each-ear" inheritall="true">
+		</foreach>
+	</target>
+
+	<target name="-assemble-each-ear">
+		<echo message="BEGIN EAR ASSEMBLY" />
+		<echo message="assembling ear for prefix: ${earprefix}" />
+		<echo message="current ant file : ${common.dir}/${default.deploy.definition.file}" />
+		<ant target="-run-j2ee-assembler" antfile="${common.dir}/${default.deploy.definition.file}" />
+	</target>
+
+
+	<!--
+      Looks at all of the source directories at once and creates a javadoc for
+      the projects.
+    -->
+	<target name="javadoc" depends="-init" description="Creates javadoc for all the modules.">
+		<defaultexcludes add="**/*.html" />
+		<defaultexcludes add="**/*.classpath" />
+		<defaultexcludes add="**/*.project" />
+		<defaultexcludes add="**/*.checkclipse" />
+		<defaultexcludes add="**/*.properties" />
+		<javadoc destdir="${global.javadoc.dir}" author="true" version="true" use="true">
+			<fileset dir="${basedir}/estore/src" defaultexcludes="yes">
+				<include name="**" />
+			</fileset>
+			<classpath refid="dynamo.classpath" />
+			<link offline="true" href="http://java.sun.com/j2se/1.4.2/docs/api/" packagelistLoc="${jdk.docs.dir}" />
+			<link offline="true" href="http://www.atg.com/repositories/ContentCatalogRepository_en/manuals/ATG7.1/apidoc/" packagelistLoc="${dynamo.docs.dir}" />
+		</javadoc>
+	</target>
+
+	<target name="cactus" depends="-init" description="Runs cactus tests on all the projects.">
+		<echo message="If the cactus target fails, ensure that the cactus.properties file has the proper contextURL set." />
+		<call-subant target="cactus" />
+	</target>
+
+	<!-- Packages the application up for deployment. See package.xml for the 
+         horrific details.
+      -->
+	<target name="package-full" description="Packages the locally deployed build for release.">
+		<ant target="-package-full" antfile="${package.definition.file}" />
+	</target>
+
+</project>
