@@ -33,6 +33,9 @@
 
         <span class="cutline">|</span>
         <a href="register.jsp">Register</a>
+
+        <span class="cutline">|</span>
+        <a href="stores.jsp">Stores</a>
     </p>
     <p><a href="shoppingCart.jsp">Shopping Cart</a> ( <span class="orange blod">2</span> items)</p>
 </div>

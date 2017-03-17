@@ -35,9 +35,9 @@
 		</table>
 
 		<table name="CLOTHINGSTORE_IMAGES" id-column-name="STORE_ID"
-			multi-column-name="STORE_ID" type="multi">
+			type="multi">
 			<property name="storeImages" column-name="STORE_IMAGE"
-				component-data-type="String" data-type="list" />
+				component-data-type="String" data-type="set" />
 		</table>
 	</item-descriptor>
 </gsa-template>
