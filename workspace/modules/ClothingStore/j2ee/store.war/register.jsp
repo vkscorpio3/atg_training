@@ -84,9 +84,8 @@
 											<dsp:param name="itemDescriptor" value="BricsMorter" />
 											<dsp:param name="queryRQL" value="ALL" />
 											<dsp:oparam name="output">
-												<dsp:option>
-													<dsp:valueof param="element.storeName"></dsp:valueof>
-												</dsp:option>
+												<dsp:tomap var="item" param="element" recursive="false" />
+												<dsp:option value="${item.storeID }" >${item.storeName}</dsp:option>
 											</dsp:oparam>
 										</dsp:droplet>
 									</dsp:select></td>
