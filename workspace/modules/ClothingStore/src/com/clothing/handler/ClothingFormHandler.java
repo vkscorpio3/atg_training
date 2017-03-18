@@ -15,6 +15,7 @@ public class ClothingFormHandler extends ProfileFormHandler {
 	private String day;
 	private String month;
 	private String year;
+//	private String favoriteStore;
 
 	@Override
 	public void preCreateUser(DynamoHttpServletRequest request, DynamoHttpServletResponse response) {
@@ -23,6 +24,7 @@ public class ClothingFormHandler extends ProfileFormHandler {
 			cal.set(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(day));
 			Date dob = cal.getTime();
 			getValue().put("dateOfBirth", dob);
+//			getValue().put("favoriteStore", getFavoriteStore());
 			super.preCreateUser(request, response);
 		} catch (ServletException e) {
 			e.printStackTrace();
@@ -31,6 +33,17 @@ public class ClothingFormHandler extends ProfileFormHandler {
 			e.printStackTrace();
 		}
 	}
+
+	
+//	public String getFavoriteStore() {
+//		return favoriteStore;
+//	}
+//
+//
+//	public void setFavoriteStore(String favoriteStore) {
+//		this.favoriteStore = favoriteStore;
+//	}
+
 
 	public String sayHello() {
 		return "Hello ATG";

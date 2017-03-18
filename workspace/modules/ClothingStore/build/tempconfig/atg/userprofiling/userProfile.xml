@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE gsa-template SYSTEM "dynamosystemresource:/atg/dtds/gsa/gsa_1.0.dtd">
+
+<gsa-template xml-combine="append">
+	<item-descriptor name="user">
+		<table name="CLOTHINGSTORE_USER" id-column-name="ID" type="auxiliary">
+			<property name="favoriteStore" column-name="FAVORITE_STORE"
+				data-type="String" />
+		</table>
+	</item-descriptor>
+</gsa-template>
+

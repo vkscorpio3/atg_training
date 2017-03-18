@@ -5,12 +5,7 @@
 <gsa-template xml-combine="append">
 	<item-descriptor name="user">
 		<table name="CLOTHINGSTORE_USER" id-column-name="ID" type="auxiliary">
-			<property name="favoriteStore" column-name="FAVORITE_STORE"
-				data-type="enumerated">
-				<option value="Store SP" code="102" />
-				<option value="Store BH" code="103" />
-				<option value="Store BA" code="105" />
-			</property>
+			<property name="favoriteStore" column-name="FAVORITE_STORE" data-type="String" />
 		</table>
 	</item-descriptor>
 </gsa-template>
