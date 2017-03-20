@@ -24,19 +24,20 @@
 			<div class="J_tab_panel">
 				<div class="catgBox">
 					<div class="catg"></div>
-					
+
 					<dsp:droplet name="/atg/commerce/catalog/CategoryLookup">
 						<dsp:param param="categoryId" name="id" />
-						
+
 						<dsp:oparam name="output">
 							<dsp:droplet name="/atg/dynamo/droplet/ForEach">
 								<dsp:param name="array" param="element.childCategories" />
 								<dsp:oparam name="output">
-								    <dsp:tomap var="item" param="element" recursive="false" />
+									<dsp:tomap var="item" param="element" recursive="false" />
 									<ul>
-										<dsp:a href="#">
+										<dsp:a href="productList.jsp">
 											<b> ${item.displayName} </b>
-											</br>
+											<dsp:param name="subCategoryId" value="${item.id}" />
+											<br></br>
 										</dsp:a>
 									</ul>
 								</dsp:oparam>
