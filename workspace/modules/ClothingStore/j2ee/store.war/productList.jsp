@@ -45,7 +45,7 @@
 									<ul>
 										<dsp:a href="productDetail.jsp">
 											<b>${item.displayName}</b>
-											<dsp:param name="id" value="${item.id}" />
+											<dsp:param name="itemId" value="${item.id}" />
 										</dsp:a>
 
 										<dsp:droplet name="/atg/dynamo/droplet/Switch">

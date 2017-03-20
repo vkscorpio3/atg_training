@@ -22,24 +22,44 @@
 		<div id="wrap" class="clear-block">
 			<div id="header"><jsp:include page="header.jsp" /></div>
 			<div id="main">
-				<div class="J_tab_panel">
-					<div class="prodDetail">
-						<h1>
-							Product Details for:
-							<dsp:valueof param="id" />
-						</h1>
-						<dsp:droplet name="/atg/commerce/catalog/ProductLookup">
-							<dsp:param param="id" name="id" />
-							<dsp:oparam name="output">
-								<dsp:getvalueof var="name" param="element.displayName" />
-								<dsp:getvalueof var="imgURL" param="element.thumbnailImage.url" />
-								<dsp:getvalueof var="price"
-									param="element.childSKUs[0].listPrice" />
-								<dsp:getvalueof var="description"
-									param="element.childSKUs[0].listPrice" />
-							</dsp:oparam>
-						</dsp:droplet>
-					</div>
+				<div class="prodDetail">
+					<dsp:droplet name="/atg/commerce/catalog/ProductLookup">
+						<dsp:param name="id" param="itemId" />
+						<dsp:oparam name="output">
+							<dsp:setvalue param="product" paramvalue="element" />
+							<dsp:valueof param="product.displayName" />
+
+							<dsp:getvalueof var="imgURL" param="product.thumbnailImage.url" />
+							<dsp:getvalueof var="skuItem" param="product.childSKUs[0]" />
+							<dsp:getvalueof var="price" param="product.childSKUs[0].listPrice" />
+
+
+							<img src="${imgURL}" />
+							<br></br>
+							<b>Price: ${price}</b>
+							<br></br>
+
+							<dsp:droplet name="/atg/commerce/inventory/InventoryLookup">
+								<dsp:param param="product.childSKUs[0].repositoryId" name="itemId" />
+								<dsp:oparam name="output">
+									<b> INVENTORY: <dsp:valueof param="inventoryInfo.availabilityStatusMsg" /></b>
+									<br></br>
+								</dsp:oparam>
+							</dsp:droplet>
+							
+							<dsp:droplet name="/atg/commerce/pricing/PriceItem">
+								<dsp:param name="item" param="product.childSKUs[0]" />
+								<dsp:param name="product" param="product" />
+								
+								<dsp:oparam name="output">
+									<br>
+										<b>Discount: <dsp:valueof param="element.priceInfo.amount" /> </b>
+									</br>
+								</dsp:oparam>
+							</dsp:droplet>
+
+						</dsp:oparam>
+					</dsp:droplet>
 				</div>
 			</div>
 			<div id="footer"><jsp:include page="footer.jsp" /></div>
