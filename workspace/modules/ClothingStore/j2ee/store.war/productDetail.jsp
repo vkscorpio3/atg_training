@@ -24,7 +24,7 @@
 			<div id="main">
 				<div class="prodDetail">
 					<dsp:droplet name="/atg/commerce/catalog/ProductLookup">
-						<dsp:param name="id" param="itemId" />
+						<dsp:param name="id" param="productId" />
 						<dsp:oparam name="output">
 							<dsp:setvalue param="product" paramvalue="element" />
 							<dsp:valueof param="product.displayName" />
