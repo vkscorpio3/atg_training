@@ -48,7 +48,7 @@
 							</dsp:droplet>
 							
 							<dsp:droplet name="/atg/commerce/pricing/PriceItem">
-								<dsp:param name="item" param="product.childSKUs[0]" />
+								<dsp:param name="item" value="${skuItem}" />
 								<dsp:param name="product" param="product" />
 								
 								<dsp:oparam name="output">
