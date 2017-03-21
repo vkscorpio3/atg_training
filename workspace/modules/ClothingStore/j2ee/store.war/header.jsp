@@ -37,5 +37,7 @@
         <span class="cutline">|</span>
         <a href="stores.jsp">Stores</a>
     </p>
-    <p><a href="shoppingCart.jsp">Shopping Cart</a> ( <span class="orange blod">2</span> items)</p>
+    <p><a href="#">Shopping Cart</a> 
+    	<dsp:valueof bean="/atg/commerce/ShoppingCart.current.totalCommerceItemCount" />
+    </p>
 </div>
