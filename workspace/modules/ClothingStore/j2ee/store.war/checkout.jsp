@@ -149,10 +149,6 @@
 										maxlength="30" size="25" type="text" required="true" /></td>
 							</tr>
 							<tr>
-								<td>Expiration Date *</td>
-								<td><input type="text" name="" id="" class="textInput" /></td>
-							</tr>
-							<tr>
 								<td>Security Code*</td>
 								<td><dsp:input
 										bean="MyFormHandler.paymentGroup.cardVerficationNumber"
@@ -161,12 +157,12 @@
 							<tr>
 								<td><dsp:input
 										bean="MyFormHandler.handleMoveToConfirmation" type="submit"
-										value="Click" /></td>
+										value="Checkout" /></td>
 								<td><dsp:input
-										bean="MyFormHandler.handleMoveToConfirmationSuccessURL" type="hidden"
-										value="index.jsp" /></td>
+										bean="MyFormHandler.handleMoveToConfirmationSuccessURL"
+										type="hidden" value="index.jsp" /></td>
 							</tr>
-							<tr>
+							<%-- <tr>
 								<td colspan="2">
 									<ul>
 										<dsp:droplet name="ErrorMessageForEach">
@@ -178,7 +174,7 @@
 										</dsp:droplet>
 									</ul>
 								</td>
-							</tr>
+							</tr> --%>
 						</tbody>
 					</table>
 				</div>
