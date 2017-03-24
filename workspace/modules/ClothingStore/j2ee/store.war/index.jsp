@@ -46,6 +46,16 @@
 				</div>
 
 			</div>
+			<div>
+
+				<dsp:droplet name="/atg/targeting/TargetingForEach">
+					<dsp:param bean="/atg/registry/Slots/MensClothingDiscountSlot" name="targeter" />
+					<dsp:oparam name="output">
+						<img src='<dsp:valueof param="element.url"/>' />
+					</dsp:oparam>
+				</dsp:droplet>
+				
+			</div>
 			<div id="footer"><jsp:include page="aboutUs.jsp" /></div>
 		</div>
 	</dsp:page>
